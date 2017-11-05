@@ -1,5 +1,5 @@
-CC = $(shell which clang gcc | head --lines=1)
-CXX = $(shell which clang++ g++ | head --lines=1)
+CC = $(shell which clang gcc | head -n1)
+CXX = $(shell which clang++ g++ | head -n1)
 CFLAGS = -W -Wall -Wextra -pedantic -O3 -flto -DNDEBUG
 
 ez80sf.rom: external/fasmg ez80sf.src
@@ -22,16 +22,16 @@ check: ez80sf.rom
 	@grep "^\w\+: *; *CHECK: *" src/*.inc | while read check; do \
 		$(CC) $(CFLAGS) $(LDFLAGS) -I external/CEmu/core test/tester.c \
 			external/CEmu/core/libcemucore.a -o test/tester; \
-		echo -n "Testing $${check%%:*}..."; \
+		printf '%s' "Testing $${check%%:*}..."; \
 		test/tester $^ `grep "^$${check%%:*} = " ez80sf.lab | cut -d\  -f3-`; \
 	done
 
 clean:
 	$(MAKE) -C external/CEmu/core clean
-	rm --force --recursive ez80sf.* test/tester
+	rm -rf ez80sf.* test/tester
 distclean:
 	git submodule deinit --all
-	rm --force --recursive ez80sf.* test/tester external/fasmg
+	rm -rf ez80sf.* test/tester external/fasmg
 
 .INTERMEDIATE: ez80sf.src external/fasmg.zip
 .PHONY: check clean distclean
