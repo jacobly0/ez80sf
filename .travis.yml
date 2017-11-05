@@ -1,0 +1,24 @@
+dist: trusty
+sudo: false
+
+language: c
+
+addons:
+  apt:
+    sources:
+      - llvm-toolchain-trusty-5.0
+    packages:
+      - libc6-i386
+      - clang-5.0
+      - lld-5.0
+
+script:
+  - make CC=clang-5.0 CXX=clang++-5.0 LDFLAGS=-fuse-ld=lld check
+
+notifications:
+  irc:
+    channels:
+      - "irc.choopa.net#ez80-dev"
+    on_success: change
+    on_failure: always
+    skip_join: true
