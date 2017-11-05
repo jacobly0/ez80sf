@@ -1,0 +1,4 @@
+*.lab
+*.rom
+external/fasmg
+test/tester
