@@ -1,8 +1,11 @@
-return: ; CHECK: 
+return: ; CHECK: true
 	ret
-loop: ; CHECK: 
+loop: ; CHECK: true
 	jr	$
-busy: ; CHECK: 
+busy: ; CHECK: out.B == 0
 	ld	b, 0
 	djnz	$
+	ret
+fail: ; CHECK: out.A
+	xor	a, a
 	ret

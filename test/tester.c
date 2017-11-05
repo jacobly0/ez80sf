@@ -25,6 +25,12 @@ static const uint32_t stack = 0xD40000;
 static const uint32_t retaddr = 0x3FFFFE;
 static const uint8_t halt = 0166;
 
+static bool check(eZ80registers_t in, eZ80registers_t out) {
+  (void)in;
+  (void)out;
+  return (CHECK);
+}
+
 int main(int argc, char **argv) {
   if (argc != 3) return 2;
   uint64_t failures = 0;
@@ -38,8 +44,10 @@ int main(int argc, char **argv) {
   cpu.registers.SPL = stack - 3;
   cpu.cycles = 0;
   cpu.next = 10000;
+  eZ80registers_t in = cpu.registers;
   cpu_execute();
-  printf(" %s %ld cycles\n", cpu.registers.PC == retaddr + 1 && cpu.registers.SPL == stack ? "took" : "timed out after", cpu.cycles + cpu.cyclesOffset);
+  eZ80registers_t out = cpu.registers;
+  printf(" %s %ld cycles\n", cpu.registers.PC == retaddr + 1 && cpu.registers.SPL == stack ? check(in, out) ? "passed in" : "failed in" : "timed out after", cpu.cycles + cpu.cyclesOffset);
   emu_cleanup();
   return failures != 0;
 }
