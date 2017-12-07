@@ -25,6 +25,8 @@ static const uint32_t stack = 0xD40000;
 static const uint32_t retaddr = 0x3FFFFE;
 static const uint8_t halt = 0166;
 
+#define bitcast(dst, src, ...) ((union { src __src; dst __dst; }){ __VA_ARGS__ }.__dst)
+
 static bool check(eZ80registers_t in, eZ80registers_t out) {
   (void)in;
   (void)out;
