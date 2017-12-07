@@ -22,7 +22,7 @@ check: ez80sf.rom
 	@grep -h "^?\?\w\+: *; *CHECK: *" src/*.inc | { \
 		exit=0; while read check; do \
 			$(CC) $(CFLAGS) $(LDFLAGS) -I external/CEmu/core -DCHECK="$${check##*:}" \
-				test/tester.c external/CEmu/core/libcemucore.a -o test/tester && \
+				test/tester.c external/CEmu/core/libcemucore.a -lm -o test/tester && \
 			printf '%s' "Testing $${check%%:*}..." && \
 			test/tester $^ "`grep "^$${check%%:*} *= *" ez80sf.lab | cut -d= -f2`" || \
 			exit=1; \

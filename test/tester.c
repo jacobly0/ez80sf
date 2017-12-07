@@ -4,6 +4,7 @@
 #include "flash.h"
 
 #include <inttypes.h>
+#include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,7 +28,12 @@ static const uint32_t stack = 0xD40000;
 static const uint32_t retaddr = 0x3FFFFE;
 static const uint8_t halt = 0166;
 
+typedef struct pair8_24 { uint32_t x : 24; uint8_t y : 8; } pair8_24_t;
 #define bitcast(dst, src, ...) ((union { src __src; dst __dst; }){ __VA_ARGS__ }.__dst)
+bool same(float x, float y) {
+  return !((bitcast(uint32_t, float, x) ^ bitcast(uint32_t, float, y)) &
+	   (isunordered(x, y) ? ~(1u << 22) : ~0u));
+}
 
 static bool check(eZ80registers_t in, eZ80registers_t out, const char **reason) {
   (void)in;
