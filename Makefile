@@ -19,7 +19,7 @@ external/fasmg.zip:
 check: ez80sf.rom
 	@git submodule update --init --recursive -- external/CEmu
 	$(MAKE) -C external/CEmu/core CC="$(CC)" CXX="$(CXX)" CFLAGS="$(CFLAGS)" libcemucore.a
-	@grep "^\w\+: *; *CHECK: *" src/*.inc | while read check; do \
+	@grep -h "^\w\+: *; *CHECK: *" src/*.inc | while read check; do \
 		$(CC) $(CFLAGS) $(LDFLAGS) -I external/CEmu/core -DCHECK="$${check##*:}" test/tester.c \
 			external/CEmu/core/libcemucore.a -o test/tester; \
 		printf '%s' "Testing $${check%%:*}..."; \
