@@ -10,6 +10,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#ifdef __APPLE__
+#include "random_mac.c"
+#endif
+
 void gui_do_stuff(void) {}
 void gui_console_printf(const char *format, ...) {
 #ifndef NDEBUG
