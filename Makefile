@@ -7,11 +7,11 @@ ez80sf.rom: external/fasmg ez80sf.src
 	$^ $@
 ez80sf.src: src/*.inc
 	@for file in $(addprefix external/fasmg-ez80/,ez80.inc symbol_table.inc) $^; do \
-		echo "include '$$file'"; \
+		printf "include '$$file'\n"; \
 	done >$@
 
 external/fasmg: external/fasmg.zip
-	unzip -o $< -d $(@D) $(@F)
+	unzip -j -o $< -d $(@D) `test "\`uname -s\`" = Darwin && printf source/macos/`$(@F)
 	chmod +x $@
 external/fasmg.zip:
 	wget https://flatassembler.net/fasmg.zip --output-document=$@
@@ -24,7 +24,7 @@ check: ez80sf.rom
 			$(CC) $(CFLAGS) $(LDFLAGS) -I external/CEmu/core -DCHECK="$${check##*:}" \
 				test/tester.c external/CEmu/core/libcemucore.a -o test/tester && \
 			printf '%s' "Testing $${check%%:*}..." && \
-			test/tester $^ `grep "^$${check%%:*} = " ez80sf.lab | cut -d\  -f3-` || \
+			test/tester $^ "`grep "^$${check%%:*} *= *" ez80sf.lab | cut -d= -f2`" || \
 			exit=1; \
 		done; exit $$exit; \
 	}
