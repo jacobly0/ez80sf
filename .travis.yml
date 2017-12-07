@@ -3,6 +3,10 @@ sudo: false
 
 language: c
 
+os:
+  - linux
+  - osx
+
 addons:
   apt:
     sources:
