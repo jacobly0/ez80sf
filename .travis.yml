@@ -1,11 +1,13 @@
-dist: trusty
-sudo: false
-
 language: c
 
-os:
-  - linux
-  - osx
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      sudo: false
+      env: FLAGS="CC=clang-5.0 CXX=clang++-5.0 LDFLAGS=-fuse-ld=lld"
+    - os: osx
+      env: FLAGS=
 
 addons:
   apt:
@@ -17,7 +19,7 @@ addons:
       - lld-5.0
 
 script:
-  - make CC=clang-5.0 CXX=clang++-5.0 LDFLAGS=-fuse-ld=lld check
+  - make $FLAGS check
 
 notifications:
   irc:
