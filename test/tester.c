@@ -1,7 +1,9 @@
-#include "emu.h"
-#include "mem.h"
+#include "asic.h"
 #include "cpu.h"
+#include "emu.h"
 #include "flash.h"
+#include "mem.h"
+#include "sched.h"
 
 #include <inttypes.h>
 #include <math.h>
@@ -120,12 +122,13 @@ int main(int argc, char **argv) {
     cpu.registers.IX = random_reg();
     cpu.registers.IY = random_reg();
     cpu.registers.SPL = stack - 3;
-    cpu_flush(entry, 1);
     cpu.inBlock = cpu.halted = false;
-    cpu.cyclesOffset += cpu.cycles;
+    cpu.baseCycles += cpu.cycles;
     cpu.cycles = 0;
-    cpu.next = 10000;
+    sched.event.cycle = 10000;
+    cpu_restore_next();
     eZ80registers_t in = cpu.registers;
+    cpu_flush(entry, 1);
     cpu_execute();
     eZ80registers_t out = cpu.registers;
     const char *reason;
@@ -139,7 +142,7 @@ int main(int argc, char **argv) {
   fprintf(stderr, " \33[%dm%" PRIu64 "/%" PRIu64
 	  " failed\33[m in \33[33m%f cycles\33[m average\n",
 	  failures ? 31 : 32, failures,
-	  iterations, 1.0 / iterations * (cpu.cycles + cpu.cyclesOffset) - 4);
+	  iterations, 1.0 / iterations * (cpu_total_cycles() - cpu.haltCycles) - 4);
   if (failures) {
     fprintf(stderr, "%s for test #%" PRIu64 " with input:\n", firstReason, firstFailure);
     print_regs(&firstIn);
@@ -147,6 +150,6 @@ int main(int argc, char **argv) {
     print_regs(&firstOut);
     fprintf(stderr, "%08" PRIX32 "\n", bitcast(uint32_t, float, bitcast(float, pair8_24_t, { firstIn.BC, firstIn.A }) + bitcast(float, pair8_24_t, { firstIn.HL, firstIn.E })));
   }
-  emu_cleanup();
+  asic_free();
   return failures != 0;
 }
