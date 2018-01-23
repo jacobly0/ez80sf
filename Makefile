@@ -6,9 +6,11 @@ ez80sf.rom: external/fasmg ez80sf.src
 	@git submodule update --init --recursive -- external/fasmg-ez80
 	$^ $@
 ez80sf.src: src/*.inc
-	@for file in $(addprefix external/fasmg-ez80/,ez80.inc symbol_table.inc) $^; do \
-		printf "include '$$file'\n"; \
-	done >$@
+	@{ \
+		for file in $(addprefix external/fasmg-ez80/,ez80.inc symbol_table.inc) $^; do \
+			printf "include '$$file'\n"; \
+		done; \
+	} >$@
 
 external/fasmg: external/fasmg.zip
 	unzip -j -o $< -d $(@D) `test "\`uname -s\`" = Darwin && printf source/macos/`$(@F)
