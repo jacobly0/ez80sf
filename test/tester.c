@@ -180,7 +180,6 @@ int main(int argc, char **argv) {
     print_regs(&firstIn, NULL);
     fprintf(stderr, "and output:\n");
     print_regs(&firstOut, firstStack);
-    fprintf(stderr, "%08" PRIX32 "\n%08" PRIX32 "\n", bitcast(uint32_t, float, bitcast(float, pair8_24_t, { firstIn.BC, firstIn.A }) + bitcast(float, pair8_24_t, { firstIn.HL, firstIn.E })), bitcast(uint32_t, float, bitcast(float, pair8_24_t, { firstIn.BC, firstIn.A }) - bitcast(float, pair8_24_t, { firstIn.HL, firstIn.E })));
   }
   asic_free();
   return failures != 0;
