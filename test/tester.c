@@ -38,7 +38,6 @@ bool same(float x, float y) {
 }
 
 static bool check(eZ80registers_t in, eZ80registers_t out, const char **reason) {
-  (void)in;
   if (!cpu.halted) {
     *reason = "Halt never reached";
     return false;
@@ -94,9 +93,9 @@ static uint8_t random_edge(uint8_t type, uint8_t value) {
 }
 static uint32_t random_reg(void) {
   uint64_t value = random64();
-  return random_edge(value >> 60 & 0xF, value >> 52 & 0xFF) << 16 |
-         random_edge(value >> 48 & 0xF, value >> 40 & 0xFF) << 8 |
-         random_edge(value >> 36 & 0xF, value >> 28 & 0xFF);
+  return random_edge(value >> 61 & 7, value >> 53) << 16 |
+         random_edge(value >> 50 & 7, value >> 42) << 8 |
+         random_edge(value >> 39 & 7, value >> 31);
 }
 static void print_regs(eZ80registers_t *regs, uint8_t stack[8][3]) {
   fprintf(stderr,
@@ -128,7 +127,8 @@ static void print_regs(eZ80registers_t *regs, uint8_t stack[8][3]) {
 
 int main(int argc, char **argv) {
   if (argc != 3) return 2;
-  uint64_t failures = 0, iterations = 10000000, firstFailure;
+  const uint64_t iterations = UINT64_C(100000000);
+  uint64_t failures = 0, firstFailure, minCycles = ~UINT64_C(0), maxCycles = UINT64_C(0);
   eZ80registers_t firstIn, firstOut;
   uint8_t firstStack[8][3];
   const char *firstReason;
@@ -141,6 +141,7 @@ int main(int argc, char **argv) {
   mem_poke_byte(stack - 3, (uint8_t)(retaddr >>  0));
   cpu.registers.MBASE = 0xD0;
   for (uint64_t i = 0; i != iterations; i++) {
+    uint64_t lastCycles = cpu_total_cycles() - cpu.haltCycles;
     cpu.registers.AF = random_reg();
     cpu.registers._AF = random_reg();
     cpu.registers.BC = random_reg();
@@ -155,7 +156,7 @@ int main(int argc, char **argv) {
     cpu.inBlock = cpu.halted = false;
     cpu.baseCycles += cpu.cycles;
     cpu.cycles = 0;
-    sched.event.cycle = 20000;
+    sched.event.cycle = 15000;
     cpu_restore_next();
     eZ80registers_t in = cpu.registers;
     cpu_flush(entry, 1);
@@ -171,10 +172,13 @@ int main(int argc, char **argv) {
       memcpy(&firstStack, &outStack, sizeof outStack);
       firstReason = reason;
     }
+    uint64_t curCycles = cpu_total_cycles() - cpu.haltCycles - lastCycles;
+    if (minCycles > curCycles) minCycles = curCycles;
+    if (maxCycles < curCycles) maxCycles = curCycles;
   }
-  fprintf(stderr, " \33[%dm%.6f%% failed\33[m in \33[33m%f cycles\33[m average\n",
+  fprintf(stderr, " \33[%dm%.6f%% failed\33[m in \33[33m%" PRIu64 "/%f/%" PRIu64 " cycles\33[m minimum/average/maximum\n",
           failures ? 31 : 32, 100.0 / iterations * failures,
-          1.0 / iterations * (cpu_total_cycles() - cpu.haltCycles));
+          minCycles, 1.0 / iterations * (cpu_total_cycles() - cpu.haltCycles), maxCycles);
   if (failures) {
     fprintf(stderr, "%s for test #%" PRIu64 " with input:\n", firstReason, firstFailure);
     print_regs(&firstIn, NULL);
