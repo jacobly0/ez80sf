@@ -13,6 +13,7 @@
 #include <string.h>
 #include <unistd.h>
 
+void gui_throttle(void) {}
 void gui_do_stuff(void) {}
 void gui_console_printf(const char *format, ...) {
 #ifndef NDEBUG
@@ -24,8 +25,6 @@ void gui_console_printf(const char *format, ...) {
   (void)format;
 #endif
 }
-void gui_emu_sleep(unsigned long us) { usleep(us); }
-void throttle_timer_wait(void) {}
 
 static const uint32_t stack = 0xD40000;
 static const uint32_t retaddr = 0x3FFFFE;
@@ -132,7 +131,7 @@ int main(int argc, char **argv) {
   eZ80registers_t firstIn, firstOut;
   uint8_t firstStack[8][3];
   const char *firstReason;
-  emu_load(argv[1], NULL);
+  emu_load(false, argv[1]);
   flash.waitStates = 4;
   mem_poke_byte(retaddr, halt);
   int entry = atoi(argv[2]);
@@ -141,7 +140,7 @@ int main(int argc, char **argv) {
   mem_poke_byte(stack - 3, (uint8_t)(retaddr >>  0));
   cpu.registers.MBASE = 0xD0;
   for (uint64_t i = 0; i != iterations; i++) {
-    uint64_t lastCycles = cpu_total_cycles() - cpu.haltCycles;
+    uint64_t lastCycles = sched_total_cycles() - cpu.haltCycles;
     cpu.registers.AF = random_reg();
     cpu.registers._AF = random_reg();
     cpu.registers.BC = random_reg();
@@ -172,13 +171,13 @@ int main(int argc, char **argv) {
       memcpy(&firstStack, &outStack, sizeof outStack);
       firstReason = reason;
     }
-    uint64_t curCycles = cpu_total_cycles() - cpu.haltCycles - lastCycles;
+    uint64_t curCycles = sched_total_cycles() - cpu.haltCycles - lastCycles;
     if (minCycles > curCycles) minCycles = curCycles;
     if (maxCycles < curCycles) maxCycles = curCycles;
   }
   fprintf(stderr, " \33[%dm%.6f%% failed\33[m in \33[33m%" PRIu64 "/%f/%" PRIu64 " cycles\33[m minimum/average/maximum\n",
           failures ? 31 : 32, 100.0 / iterations * failures,
-          minCycles, 1.0 / iterations * (cpu_total_cycles() - cpu.haltCycles), maxCycles);
+          minCycles, 1.0 / iterations * (sched_total_cycles() - cpu.haltCycles), maxCycles);
   if (failures) {
     fprintf(stderr, "%s for test #%" PRIu64 " with input:\n", firstReason, firstFailure);
     print_regs(&firstIn, NULL);
