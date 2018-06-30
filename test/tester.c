@@ -87,16 +87,16 @@ uint64_t random64(void) {
 }
 
 static uint8_t random_edge(uint8_t type, uint8_t value) {
-  static const uint8_t edges[] = { 0x00, 0x01, 0x7F, 0x80, 0xFE, 0xFF };
+  static const uint8_t edges[] = { 0x00, 0x01, 0x3F, 0x40, 0x7F, 0x80, 0xBF, 0xC0, 0xFE, 0xFF };
   return type < sizeof(edges) ? edges[type] : value;
 }
 static uint32_t random_reg(void) {
   uint64_t value = random64();
-  return random_edge(value >> 61 & 7, value >> 53) << 16 |
-         random_edge(value >> 50 & 7, value >> 42) << 8 |
-         random_edge(value >> 39 & 7, value >> 31);
+  return random_edge(value >> 60 & 15, value >> 52) << 16 |
+         random_edge(value >> 48 & 15, value >> 40) << 8 |
+         random_edge(value >> 36 & 15, value >> 28);
 }
-static void print_regs(eZ80registers_t *regs, uint8_t stack[8][3]) {
+static void print_regs(eZ80registers_t *regs, uint8_t stack[10][3]) {
   fprintf(stderr,
           "\tAF %04X     %04X AF' (SP+00) %06X\n"
           "\tBC %06X %06X BC' (SP+03) %06X\n"
@@ -104,8 +104,10 @@ static void print_regs(eZ80registers_t *regs, uint8_t stack[8][3]) {
           "\tHL %06X %06X HL' (SP+09) %06X\n"
           "\tIX %06X %06X SP  (SP+12) %06X\n"
           "\tIY %06X %06X PC  (SP+15) %06X\n"
-          "\tABC %+15.8e  (SP+18) %06X\n"
-          "\tEHL %+15.8e  (SP+21) %06X\n",
+          "\tABC %-+15.8e  (SP+18) %06X\n"
+          "\tEHL %-+15.8e  (SP+21) %06X\n"
+          "\tABC %-+16.6a (SP+24) %06X\n"
+          "\tEHL %-+16.6a (SP+27) %06X\n",
           regs->AF, regs->_AF,
           stack ? stack[0][2] << 16 | stack[0][1] << 8 | stack[0][0] : retaddr,
           regs->BC, regs->_BC,
@@ -121,7 +123,11 @@ static void print_regs(eZ80registers_t *regs, uint8_t stack[8][3]) {
           bitcast(float, pair8_24_t, { regs->BC, regs->A }),
           stack ? stack[6][2] << 16 | stack[6][1] << 8 | stack[6][0] : 0,
           bitcast(float, pair8_24_t, { regs->HL, regs->E }),
-          stack ? stack[7][2] << 16 | stack[7][1] << 8 | stack[7][0] : 0);
+          stack ? stack[7][2] << 16 | stack[7][1] << 8 | stack[7][0] : 0,
+          bitcast(float, pair8_24_t, { regs->BC, regs->A }),
+          stack ? stack[8][2] << 16 | stack[8][1] << 8 | stack[8][0] : 0,
+          bitcast(float, pair8_24_t, { regs->HL, regs->E }),
+          stack ? stack[9][2] << 16 | stack[9][1] << 8 | stack[9][0] : 0);
 }
 
 int main(int argc, char **argv) {
@@ -129,7 +135,7 @@ int main(int argc, char **argv) {
   const uint64_t iterations = UINT64_C(100000000);
   uint64_t failures = 0, firstFailure, minCycles = ~UINT64_C(0), maxCycles = UINT64_C(0);
   eZ80registers_t firstIn, firstOut;
-  uint8_t firstStack[8][3];
+  uint8_t firstStack[10][3];
   const char *firstReason;
   emu_load(false, argv[1]);
   flash.waitStates = 4;
@@ -161,7 +167,7 @@ int main(int argc, char **argv) {
     cpu_flush(entry, 1);
     cpu_execute();
     eZ80registers_t out = cpu.registers;
-    uint8_t outStack[8][3];
+    uint8_t outStack[10][3];
     virt_mem_cpy(&outStack, out.SPL, sizeof outStack);
     const char *reason;
     if (!check(in, out, &reason) && failures++ == 0) {
