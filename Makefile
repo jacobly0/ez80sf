@@ -35,7 +35,7 @@ clean:
 	$(MAKE) -C external/CEmu/core clean
 	rm -rf ez80sf.* test/tester
 distclean:
-	git submodule deinit --all
+	git submodule deinit --all --force
 	rm -rf ez80sf.* test/tester external/fasmg
 
 .INTERMEDIATE: ez80sf.src external/fasmg.zip
