@@ -12,9 +12,9 @@ __fpmul: ; CHECK: same(bitcast(float, pair8_24_t, { out.BC, out.A }), bitcast(fl
 	ld	e, a
 	call	__fpupop2
 	inc	e
-	jq	z, .nonfinite1
+	jq	z, .nonfinite.1
 	inc	d
-	jq	z, .return2
+	jq	z, .nonfinite.2
 	ld	a, d
 	ld	d, b; 0
 	rlc	e
@@ -120,7 +120,7 @@ end repeat
 	ld	de, 0800000h
 	add	a, -1
 	call	nc, __fppack2.normalized
-	call	c,__fppack2
+	call	c, __fppack2
 	pop	ix, bc, bc, bc
 	ex	(sp), hl
 	pop	bc, de
@@ -132,24 +132,46 @@ end repeat
 	ret
 .nonfinite:
 	sbc	hl, bc
-	jq	z, .return2
+	jq	z, .return.2
 	add	hl, bc
-.nonfinite1:
+	pop	bc
+	jq	.return.1
+.nonfinite.1:
 	inc	d
 	jq	z, .nonfinite
-.return1:
-	pop	bc, af
+	ex	de, hl
+	pop	hl
+	add	hl, bc
+	or	a, a
+	sbc	hl, bc
+	ex	de, hl
+	jq	nz, .return.1
+	ld	h, a
+.return.1:
+	pop	af
 	ex	(sp), hl
-	pop	bc, de
+	pop	bc
 	jq	.return
-.return2:
+.nonfinite.2:
+	add	hl, bc
+	or	a, a
+	sbc	hl, bc
+	jq	z, .return.nan
+.return.2:
 	pop	bc, af, bc
 	push	bc
-	pop	hl, de
+.return.pop:
+	pop	hl
 .return:
+	pop	de
 	ld	a, 07Fh
 	ret	p
 	jq	__fpneg
+.return.nan:
+	pop	bc
+	set	7, b
+	pop	af
+	jq	.return.pop
 
 ; IEEE single precision negation
 ; aubc = -aubc
