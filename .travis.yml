@@ -6,6 +6,8 @@ matrix:
       dist: trusty
       sudo: false
       env: FLAGS="CC=clang-5.0 CXX=clang++-5.0 LDFLAGS=-fuse-ld=lld"
+    - os: osx
+      env: FLAGS=
 
 addons:
   apt:
