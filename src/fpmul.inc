@@ -38,68 +38,59 @@ __fpmul: ; CHECK: same(bitcast(float, pair8_24_t, { out.BC, out.A }), bitcast(fl
 	ld	d, a
 .continue:
 	push	hl, ix
-	ld	ix, -6
+	ld	ix, -7
 	add	ix, sp
 	ld	sp, ix
-	ld	l, (ix + 9)
-	ld	h, (ix + 12)
+	ld	c, l
+	ld	h, (ix + 13)
 	mlt	hl
 	ld	(ix + 0), l
 	ld	l, h
 	ld	h, 0
-	ld	c, (ix + 9)
-	ld	b, (ix + 13)
+	ld	b, (ix + 14)
 	mlt	bc
 	add	hl, bc
-	ld	c, (ix + 10)
-	ld	b, (ix + 12)
+	ld	c, (ix + 11)
+	ld	b, (ix + 13)
 	mlt	bc
 	add.s	hl, bc
 	ld	(ix + 1), l
 	ld	l, h
 	ld	h, 0
 	rl	h
-	ld	c, (ix + 9)
-	ld	b, (ix + 14)
-	mlt	bc
-	add	hl, bc
 	ld	c, (ix + 10)
-	ld	b, (ix + 13)
+	ld	b, (ix + 15)
 	mlt	bc
 	add	hl, bc
 	ld	c, (ix + 11)
-	ld	b, (ix + 12)
-	mlt	bc
-	add	hl, bc
-	ld	(ix + 2), l
-	dec	sp
-	push	hl
-	inc	sp
-	pop	hl
-	inc	hl
-	dec.s	hl
-	ld	c, (ix + 10)
 	ld	b, (ix + 14)
 	mlt	bc
 	add	hl, bc
-	ld	c, (ix + 11)
-	ld	b, (ix + 13)
+	ld	bc, (ix + 12)
 	mlt	bc
 	add	hl, bc
-	ld	(ix + 3), l
-	dec	sp
-	push	hl
-	inc	sp
-	pop	hl
+	ld	(ix + 2), hl
+	ld	hl, (ix + 3)
 	inc	hl
 	dec.s	hl
 	ld	c, (ix + 11)
+	ld	b, (ix + 15)
+	mlt	bc
+	add	hl, bc
+	ld	c, (ix + 12)
 	ld	b, (ix + 14)
 	mlt	bc
 	add	hl, bc
-	ld	(ix + 4), l
-	ld	(ix + 5), h
-	ld	c, (ix + 16)
+	ld	(ix + 3), hl
+	ld	hl, (ix + 4)
+	inc	hl
+	dec.s	hl
+	ld	c, (ix + 12)
+	ld	b, (ix + 15)
+	mlt	bc
+	add	hl, bc
+	ld	(ix + 4), hl
+	ld	c, (ix + 17)
 	cp	a, d
 	jq	nz, .normalized
 .normalize:
@@ -116,6 +107,7 @@ end repeat
 	jq	nz, .normalize
 .normalized:
 	pop	ix, hl
+	inc	sp
 	ld	b, a
 	ld	de, 0800000h
 	add	a, -1
@@ -164,17 +156,10 @@ end repeat
 	pop	hl
 .return:
 	pop	de
-	ld	a, 07Fh
-	ret	p
-	jq	__fpneg
+	or	a, 07Fh
+	ret
 .return.nan:
 	pop	bc
 	set	7, b
 	pop	af
 	jq	.return.pop
-
-; IEEE single precision negation
-; aubc = -aubc
-__fpneg: ; CHECK: bitcast(uint32_t, pair8_24_t, { out.BC, out.A }) == bitcast(uint32_t, float, -bitcast(float, pair8_24_t, { in.BC, in.A })) && out.DE == in.DE && out.HL == in.HL && out.IX == in.IX && out.IY == in.IY
-	xor	a, 080h
-	ret
