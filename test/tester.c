@@ -130,9 +130,11 @@ static void print_regs(eZ80registers_t *regs, uint8_t stack[10][3]) {
           stack ? stack[9][2] << 16 | stack[9][1] << 8 | stack[9][0] : 0);
 }
 
+#define UINT64_C_(x) UINT64_C(x)
+
 int main(int argc, char **argv) {
   if (argc != 3) return 2;
-  const uint64_t iterations = UINT64_C(100000000);
+  const uint64_t iterations = UINT64_C_(ITERATIONS);
   uint64_t failures = 0, firstFailure, minCycles = ~UINT64_C(0), maxCycles = UINT64_C(0);
   eZ80registers_t firstIn, firstOut;
   uint8_t firstStack[10][3];
@@ -145,6 +147,8 @@ int main(int argc, char **argv) {
   mem_poke_byte(stack - 2, (uint8_t)(retaddr >>  8));
   mem_poke_byte(stack - 3, (uint8_t)(retaddr >>  0));
   cpu.registers.MBASE = 0xD0;
+  for (uint64_t i = 0; i != UINT64_C_(OFFSET) * 10; i++)
+    random64();
   for (uint64_t i = 0; i != iterations; i++) {
     uint64_t lastCycles = sched_total_cycles() - cpu.haltCycles;
     cpu.registers.AF = random_reg();

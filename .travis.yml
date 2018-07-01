@@ -19,7 +19,7 @@ addons:
       - lld-5.0
 
 script:
-  - make $FLAGS check
+  - make $FLAGS ITERATIONS=100000000 check
 
 notifications:
   irc:

@@ -2,6 +2,9 @@ CC = $(shell which clang gcc | head -n1)
 CXX = $(shell which clang++ g++ | head -n1)
 CFLAGS = -W -Wall -Wextra -pedantic -O3 -flto -DNDEBUG
 
+OFFSET = 0
+ITERATIONS = 1000000
+
 ez80sf.rom: external/fasmg ez80sf.src
 	@git submodule update --init --recursive -- external/fasmg-ez80
 	$^ $@
@@ -23,7 +26,7 @@ check: ez80sf.rom
 	$(MAKE) -C external/CEmu/core CC="$(CC)" CXX="$(CXX)" CFLAGS="$(CFLAGS)" libcemucore.a
 	@grep -h "^?\?\w\+: *; *CHECK: *" src/*.inc | { \
 		exit=0; while read check; do \
-			$(CC) $(CFLAGS) $(LDFLAGS) -I external/CEmu/core -DCHECK="$${check##*:}" \
+			$(CC) $(CFLAGS) $(LDFLAGS) -I external/CEmu/core -DCHECK="$${check##*:}" -DOFFSET="$(OFFSET)" -DITERATIONS="$(ITERATIONS)" \
 				test/tester.c external/CEmu/core/libcemucore.a -lm -o test/tester && \
 			printf '%s' "Testing $${check%%:*}..." && \
 			test/tester $^ "`grep "^$${check%%:*} *= *" ez80sf.lab | cut -d= -f2`" || \
