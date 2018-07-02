@@ -31,7 +31,7 @@ __fpmul: ; CHECK: same(bitcast(float, pair8_24_t, { out.BC, out.A }), bitcast(fl
 	add	a, e
 	jq	z, .subnormal
 	jq	c, .continue
-	cp	a, -25
+	cp	a, -23
 	jq	c, .underflow
 .subnormal:
 	dec	a
