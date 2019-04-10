@@ -5,6 +5,7 @@ CFLAGS = -W -Wall -Wextra -pedantic -O3 -flto -DNDEBUG
 CHECK = *
 OFFSET = 0
 ITERATIONS = 1000000
+MAX_CYCLES = 15000
 
 ez80sf.rom: external/fasmg ez80sf.src
 	@git submodule update --init --recursive -- external/fasmg-ez80
@@ -28,7 +29,7 @@ check: ez80sf.rom
 	@grep -h "^?\?\w\+: *; *CHECK: *" $(patsubst %,src/%.inc,$(CHECK)) | { \
 		exit=0; while read check; do \
 			$(CC) $(CFLAGS) $(LDFLAGS) -I external/CEmu/core -DCHECK="$${check##*:}" -DOFFSET="$(OFFSET)" -DITERATIONS="$(ITERATIONS)" \
-				test/tester.c external/CEmu/core/libcemucore.a -lm -o test/tester && \
+				-DMAX_CYCLES="$(MAX_CYCLES)" test/tester.c external/CEmu/core/libcemucore.a -lm -o test/tester && \
 			printf '%s' "Testing $${check%%:*}..." && \
 			test/tester $^ "`grep "^$${check%%:*} *= *" ez80sf.lab | cut -d= -f2`" || \
 			exit=1; \

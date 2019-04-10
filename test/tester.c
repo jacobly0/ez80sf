@@ -165,7 +165,7 @@ int main(int argc, char **argv) {
     cpu.inBlock = cpu.halted = false;
     cpu.baseCycles += cpu.cycles;
     cpu.cycles = 0;
-    sched.event.cycle = 15000;
+    sched.event.cycle = MAX_CYCLES;
     cpu_restore_next();
     eZ80registers_t in = cpu.registers;
     cpu_flush(entry, 1);
