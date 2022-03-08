@@ -1,0 +1,30 @@
+	assume	adl=1
+
+	section	.text
+	public	__llnot
+__llnot: ; CHECK: bitcast(uint64_t, tuple16_24_24_t, { out.HL, out.DE, out.BCS }) == ~bitcast(uint64_t, tuple16_24_24_t, { in.HL, in.DE, in.BCS }) && out.A == in.A && out.IX == in.IX && out.IY == in.IY
+	push	hl		; *spl=UHL
+	add	hl, de		; uhl=UHL+UDE
+	ex	de, hl		; ude=UHL+UDE, uhl=UDE
+	scf
+	sbc	hl, de		; uhl=UDE-(UHL+UDE)-1
+				;    =UDE-UHL-UDE-1
+				;    =-UHL-1
+				;    =~UHL
+	ex	(sp), hl	; uhl=UHL, *spl=~UHL
+	scf
+	sbc	hl, de		; uhl=UHL-(UHL+UDE)-1
+				;    =UHL-UHL-UDE-1
+				;    =-UDE-1
+				;    =~UDE
+	ex	de, hl		; ude=~UDE, uhl=UHL+UDE
+	sbc	hl, hl		; uhl=-some_bool
+	ccf			; cf=!some_bool
+	sbc	hl, bc		; uhl=-some_bool-UBC-!some_bool
+				;    =-UBC-(some_bool+!some_bool)
+				;    =-UBC-1
+				;    =~UBC
+	ld	c, l
+	ld	b, h		; bc=~BC
+	pop	hl		; uhl=~UHL
+	ret
