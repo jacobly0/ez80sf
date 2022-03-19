@@ -10,6 +10,7 @@ __brems: ; PREREQ: in.C && ((int8_t)in.A != -128 || (int8_t)in.C != -1) CHECK: o
 
 	ld	b, a
 	call	__bdvrms
+	ld	a, h
 
 	bit	7, b
 

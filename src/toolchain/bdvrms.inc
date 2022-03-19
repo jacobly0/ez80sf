@@ -1,7 +1,10 @@
+	assume	adl=1
+
+	section	.text
 	public	__bdvrms
 __bdvrms:
 ; I: B=dividend, C=divisor
-; O: a=abs(B)%abs(C), h=?, l=abs(B)/abs(C)
+; O: a=?, h=abs(B)%abs(C), l=abs(B)/abs(C)
 
 	push	bc
 

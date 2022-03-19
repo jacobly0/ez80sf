@@ -2,7 +2,7 @@
 
 	section	.text
 	public	__llrems
-__llrems: ; PREREQ: *(int64_t*)inStack[1] && (bitcast(int64_t, tuple16_24_24_t, { in.HL, in.DE, in.BCS }) != (int64_t)(1L << 63)|| *(int64_t*)inStack[1] != -1) CHECK: bitcast(int64_t, tuple16_24_24_t, { out.HL, out.DE, out.BCS }) == (int64_t)(bitcast(int64_t, tuple16_24_24_t, { in.HL, in.DE, in.BCS }) % *(int64_t*)inStack[1]) && out.A == in.A && out.IX == in.IX && out.IY == in.IY
+__llrems: ; PREREQ: *(int64_t*)inStack[1] && (bitcast(int64_t, tuple16_24_24_t, { in.HL, in.DE, in.BCS }) != (int64_t)(1L << 63) || *(int64_t*)inStack[1] != -1) CHECK: bitcast(int64_t, tuple16_24_24_t, { out.HL, out.DE, out.BCS }) == (int64_t)(bitcast(int64_t, tuple16_24_24_t, { in.HL, in.DE, in.BCS }) % *(int64_t*)inStack[1]) && out.A == in.A && out.IX == in.IX && out.IY == in.IY
 
 	scf
 virtual
@@ -12,7 +12,7 @@ end virtual
 	db	.jr_nc
 
 	public	__lldivs
-__lldivs: ; PREREQ: *(int64_t*)inStack[1] && (bitcast(int64_t, tuple16_24_24_t, { in.HL, in.DE, in.BCS }) != (int64_t)(1L << 63)|| *(int64_t*)inStack[1] != -1) CHECK: bitcast(int64_t, tuple16_24_24_t, { out.HL, out.DE, out.BCS }) == (int64_t)(bitcast(int64_t, tuple16_24_24_t, { in.HL, in.DE, in.BCS }) / *(int64_t*)inStack[1]) && out.A == in.A && out.IX == in.IX && out.IY == in.IY
+__lldivs: ; PREREQ: *(int64_t*)inStack[1] && (bitcast(int64_t, tuple16_24_24_t, { in.HL, in.DE, in.BCS }) != (int64_t)(1L << 63) || *(int64_t*)inStack[1] != -1) CHECK: bitcast(int64_t, tuple16_24_24_t, { out.HL, out.DE, out.BCS }) == (int64_t)(bitcast(int64_t, tuple16_24_24_t, { in.HL, in.DE, in.BCS }) / *(int64_t*)inStack[1]) && out.A == in.A && out.IX == in.IX && out.IY == in.IY
 
 	or	a, a
 

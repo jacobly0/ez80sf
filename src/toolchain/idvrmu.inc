@@ -1,0 +1,32 @@
+	assume	adl=1
+
+	section	.text
+	public	__idvrmu
+__idvrmu:
+; I: UHL=dividend, UBC=divisor
+; O: a=0, ude=UHL/UBC, uhl=UHL%UBC
+
+	ex	de, hl
+	or	a, a
+	sbc	hl, hl
+
+	ld	a, 24
+
+.loop:
+	ex	de, hl
+	add	hl, hl
+	ex	de, hl
+	adc	hl, hl
+
+	sbc	hl, bc
+	inc	e
+
+	jr	nc, .restore_skip
+	add	hl, bc
+	dec	e
+.restore_skip:
+
+	dec	a
+	jr	nz, .loop
+
+	ret

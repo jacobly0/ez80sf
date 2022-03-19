@@ -2,7 +2,7 @@
 
 	section	.text
 	public	__llmulu_b
-__llmulu_b: ; CHECK: bitcast(uint64_t, tuple16_24_24_t, { out.HL, out.DE, out.BCS }) == (uint64_t)(bitcast(uint64_t, tuple16_24_24_t, { in.HL, in.DE, in.BCS }) * *(int8_t*)inStack[1]) && out.A == in.A && out.IX == in.IX && out.IY == in.IY
+__llmulu_b: ; CHECK: bitcast(uint64_t, tuple16_24_24_t, { out.HL, out.DE, out.BCS }) == (uint64_t)(bitcast(uint64_t, tuple16_24_24_t, { in.HL, in.DE, in.BCS }) * *(uint8_t*)inStack[1]) && out.A == in.A && out.IX == in.IX && out.IY == in.IY
 	push	af
 	push	iy
 	ld	iy, 0

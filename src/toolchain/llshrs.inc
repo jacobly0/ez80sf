@@ -2,7 +2,7 @@
 
 	section	.text
 	public	__llshrs
-__llshrs: ; PREREQ: *(uint8_t*)inStack[1] < 64 CHECK: bitcast(int64_t, tuple16_24_24_t, { out.HL, out.DE, out.BCS }) == (int64_t)(bitcast(int64_t, tuple16_24_24_t, { in.HL, in.DE, in.BCS }) >> *(uint8_t*)inStack[1]) && out.A == in.A && out.IX == in.IX && out.IY == in.IY
+__llshrs: ; PREREQ: *(uint8_t*)inStack[1] < 64 CHECK: bitcast(int64_t, tuple16_24_24_t, { out.HL, out.DE, out.BCS }) == bitcast(int64_t, tuple16_24_24_t, { in.HL, in.DE, in.BCS }) >> *(uint8_t*)inStack[1] && out.A == in.A && out.IX == in.IX && out.IY == in.IY
 ; Suboptimal for large shift amounts
 	push	af
 	push	iy

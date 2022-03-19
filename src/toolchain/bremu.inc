@@ -11,6 +11,7 @@ __bremu: ; PREREQ: in.C CHECK: out.A == (uint8_t)(in.A % in.C) && out.BC == in.B
 
 	ld	b, a
 	call	__bdvrmu
+	ld	a, h
 
 	pop	hl
 	pop	bc

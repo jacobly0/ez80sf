@@ -2,7 +2,7 @@
 
 	section	.text
 	public	__llneg
-__llneg: ; CHECK: bitcast(uint64_t, tuple16_24_24_t, { out.HL, out.DE, out.BCS }) == -bitcast(uint64_t, tuple16_24_24_t, { in.HL, in.DE, in.BCS }) && out.A == in.A && out.IX == in.IX && out.IY == in.IY
+__llneg: ; PREREQ: bitcast(int64_t, tuple16_24_24_t, { in.HL, in.DE, in.BCS }) != (int64_t)(UINT64_C(1) << 63) CHECK: bitcast(int64_t, tuple16_24_24_t, { out.HL, out.DE, out.BCS }) == -bitcast(int64_t, tuple16_24_24_t, { in.HL, in.DE, in.BCS }) && out.A == in.A && out.IX == in.IX && out.IY == in.IY
 	or	a, a
 	public	__llneg.hijack_nc
 .hijack_nc:

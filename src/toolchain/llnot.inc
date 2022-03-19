@@ -2,7 +2,7 @@
 
 	section	.text
 	public	__llnot
-__llnot: ; CHECK: bitcast(uint64_t, tuple16_24_24_t, { out.HL, out.DE, out.BCS }) == ~bitcast(uint64_t, tuple16_24_24_t, { in.HL, in.DE, in.BCS }) && out.A == in.A && out.IX == in.IX && out.IY == in.IY
+__llnot: ; CHECK: bitcast(int64_t, tuple16_24_24_t, { out.HL, out.DE, out.BCS }) == ~bitcast(int64_t, tuple16_24_24_t, { in.HL, in.DE, in.BCS }) && out.A == in.A && out.IX == in.IX && out.IY == in.IY
 	push	hl		; *spl=UHL
 	add	hl, de		; uhl=UHL+UDE
 	ex	de, hl		; ude=UHL+UDE, uhl=UDE
