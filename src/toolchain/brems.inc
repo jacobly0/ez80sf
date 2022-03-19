@@ -10,7 +10,7 @@ __brems: ; PREREQ: in.C && ((int8_t)in.A != (int8_t)(1 << 7) || (int8_t)in.C != 
 
 	ld	l, a
 	push	hl
-	call	__bdvrms.hijack_a_l_dividend
+	call	__bdvrms_abs.hijack_a_l_dividend
 
 	pop	af
 
@@ -22,4 +22,4 @@ __brems: ; PREREQ: in.C && ((int8_t)in.A != (int8_t)(1 << 7) || (int8_t)in.C != 
 	ret
 
 
-	extern	__bdvrms.hijack_a_l_dividend
+	extern	__bdvrms_abs.hijack_a_l_dividend

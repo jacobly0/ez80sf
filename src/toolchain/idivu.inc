@@ -6,14 +6,12 @@ __idivu: ; PREREQ: in.BC CHECK: out.HL == in.HL / in.BC && out.A == in.A && out.
 ; I: UHL=dividend, UBC=divisor
 ; O: uhl=UHL/UBC
 
-	push	af
 	push	de
 
 	call	__idvrmu
 	ex	de, hl
 
 	pop	de
-	pop	af
 	ret
 
 

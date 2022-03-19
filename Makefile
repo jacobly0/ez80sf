@@ -29,7 +29,7 @@ external/fasmg.$(FASMG_VERSION).zip:
 check: ez80sf.rom
 	@git submodule update --init --recursive -- external/CEmu
 	$(MAKE) -C external/CEmu/core CC="$(CC)" CXX="$(CXX)" CFLAGS="$(CFLAGS)" libcemucore.a
-	@sed -E -e '/^\??([[:alnum:]_.]+) *:(= *[[:alnum:]_.]+)? *;.*CHECK:/!d;s/^\??([[:alnum:]_.]+) *:(= *[[:alnum:]_.]+)? *; *(PREREQ:(.*))?CHECK:(.*)$$/\1\t\4\t\5/;s/\t\t/\ttrue\t/' $(patsubst %,src/%.inc,$(CHECK)) | { \
+	@LC_ALL=C sed -E -e '/^\??([[:alnum:]_.]+) *:(= *[[:alnum:]_.]+)? *;.*CHECK:/!d;s/^\??([[:alnum:]_.]+) *:(= *[[:alnum:]_.]+)? *; *(PREREQ:(.*))?CHECK:(.*)$$/\1\t\4\t\5/;s/\t\t/\ttrue\t/' $(patsubst %,src/%.inc,$(CHECK)) | { \
 		exit=0; IFS=\	; while read -r label prereq check; do \
 			$(CC) $(CFLAGS) $(LDFLAGS) -I external/CEmu/core -DPREREQ="$$prereq" -DCHECK="$${check#*CHECK:}" -DOFFSET="$(OFFSET)" -DITERATIONS="$(ITERATIONS)" \
 				-DMAX_CYCLES="$(MAX_CYCLES)" test/tester.c external/CEmu/core/libcemucore.a -lm -o test/tester && \

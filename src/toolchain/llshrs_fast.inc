@@ -12,7 +12,7 @@ __llshrs_fast: ; PREREQ: *(uint8_t*)inStack[1] < 64 CHECK: bitcast(int64_t, tupl
 	ld	b, (iy + 3)
 	inc	b
 	dec	b
-	ret	z
+	jr	z, .skip
 
 	push	de
 	push	hl
@@ -30,19 +30,20 @@ __llshrs_fast: ; PREREQ: *(uint8_t*)inStack[1] < 64 CHECK: bitcast(int64_t, tupl
 	rr	l
 	djnz	.loop
 
-	ld	b, c
-	ld	c, a
+	ld	b, e
+	ld	(iy - 2), d
 
-	ld	a, l
-	ld	(iy - 5), h
-
+	ex	de, hl
 	pop	hl
 	ld	l, e
 	ld	h, d
-	ex	de, hl
 
-	pop	hl
-	ld	l, a
+	pop	de
+	ld	e, b
+
+.skip:
+	ld	b, c
+	ld	c, a
 
 	ret
 

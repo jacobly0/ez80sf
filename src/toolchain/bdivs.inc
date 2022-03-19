@@ -9,7 +9,7 @@ __bdivs: ; PREREQ: in.C && ((int8_t)in.B != (int8_t)(1 << 7) || (int8_t)in.C != 
 	push	hl
 
 	ld	l, b
-	call	__bdvrms
+	call	__bdvrms_abs
 
 	ld	a, c
 	xor	a, b
@@ -22,4 +22,4 @@ __bdivs: ; PREREQ: in.C && ((int8_t)in.B != (int8_t)(1 << 7) || (int8_t)in.C != 
 	ret
 
 
-	extern	__bdvrms
+	extern	__bdvrms_abs

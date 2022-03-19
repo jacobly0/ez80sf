@@ -6,13 +6,11 @@ __iremu: ; PREREQ: in.BC CHECK: out.HL == in.HL % in.BC && out.A == in.A && out.
 ; I: UHL=dividend, UBC=divisor
 ; O: uhl=UHL%UBC
 
-	push	af
 	push	de
 
 	call	__idvrmu
 
 	pop	de
-	pop	af
 	ret
 
 

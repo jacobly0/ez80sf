@@ -13,7 +13,7 @@ jobs:
           - runs-on: ubuntu
             make-args: CC=clang-11 CXX=clang++-11 LDFLAGS=-fuse-ld=lld ITERATIONS=50000000
           - runs-on: macos
-            make-args: OFFSET=50000000 ITERATIONS=100000000
+            make-args: OFFSET=50000000 ITERATIONS=90000000
     runs-on: ${{matrix.runs-on}}-latest
     steps:
       - name: Checkout
