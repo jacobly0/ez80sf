@@ -2,7 +2,7 @@
 
 	section	.text
 	public	_isprint
-_isprint: ; PREREQ: -1 <= (int32_t)(*(uint32_t*)inStack[1] << 8) >> 8 && (int32_t)(*(uint32_t*)inStack[1] << 8) >> 8 < 1 << 8 CHECK: !!out.HL == (' ' <= inStack[1][0] && inStack[1][0] <= '~') && out.IX == in.IX
+_isprint: ; PREREQ: -1 <= (int32_t)(*(uint32_t*)inStack[1] << 8) >> 8 && (int32_t)(*(uint32_t*)inStack[1] << 8) >> 8 < 1 << 8 CHECK: !!out.HL == ('\0' < inStack[1][0] && inStack[1][0] < 0x80) && out.IX == in.IX
 	pop	hl
 	pop	de
 	push	de

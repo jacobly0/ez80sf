@@ -3,19 +3,24 @@
 	section	.text
 	public	__llshrs_fast
 __llshrs_fast: ; PREREQ: *(uint8_t*)inStack[1] < 64 CHECK: bitcast(int64_t, tuple16_24_24_t, { out.HL, out.DE, out.BCS }) == bitcast(int64_t, tuple16_24_24_t, { in.HL, in.DE, in.BCS }) >> *(uint8_t*)inStack[1] && out.IX == in.IX
-; Not well-optimized, but it probably works
+; Could use optimization for shifting whole bytes at a time.
 	ld	iy, 0
 	add	iy, sp
+
 	ld	a, c
 	ld	c, b
 	ld	b, (iy + 3)
 	inc	b
 	dec	b
 	ret	z
+
 	push	de
 	push	hl
+
 .loop:
 	sra	c
+	public	__llshrs_fast.hijack_llshru
+.hijack_llshru:
 	rra
 	rr	(iy - 1)
 	rr	d
@@ -24,8 +29,21 @@ __llshrs_fast: ; PREREQ: *(uint8_t*)inStack[1] < 64 CHECK: bitcast(int64_t, tupl
 	rr	h
 	rr	l
 	djnz	.loop
+
 	ld	b, c
 	ld	c, a
+
+	ld	a, l
+	ld	(iy - 5), h
+
+	pop	hl
+	ld	l, e
+	ld	h, d
+	ex	de, hl
+
+	pop	hl
+	ld	l, a
+
 	ret
 
 

@@ -3,8 +3,18 @@
 	section	.text
 	public	__bdvrms
 __bdvrms:
-; I: B=dividend, C=divisor
-; O: a=?, h=abs(B)%abs(C), l=abs(B)/abs(C)
+; I: C=divisor, L=dividend
+; O: a=?, h=abs(L)%abs(C), l=abs(L)/abs(C)
+
+	ld	a, l
+	public	__bdvrms.hijack_a_l_dividend
+.hijack_a_l_dividend:
+	rla
+	jr	nc, .neg_dividend_skip
+	xor	a, a
+	sub	a, l
+	ld	l, a
+.neg_dividend_skip:
 
 	push	bc
 
@@ -14,20 +24,13 @@ __bdvrms:
 	xor	a, a
 	sub	a, c
 	ld	c, a
+	jr	nc, .neg_dividend_skip
 .neg_divisor_skip:
 
-	ld	a, b
-	rla
-	jr	nc, .neg_dividend_skip
-	xor	a, a
-	sub	a, b
-	ld	b, a
-.neg_dividend_skip:
-
-	call	__bdvrmu
+	call	__bdvrmu.hijack_l_dividend
 
 	pop	bc
 	ret
 
 
-	extern	__bdvrmu
+	extern	__bdvrmu.hijack_l_dividend

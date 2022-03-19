@@ -2,7 +2,7 @@
 
 	section	.text
 	public	_iscntrl
-_iscntrl: ; PREREQ: -1 <= (int32_t)(*(uint32_t*)inStack[1] << 8) >> 8 && (int32_t)(*(uint32_t*)inStack[1] << 8) >> 8 < 1 << 8 CHECK: !!out.HL == (('\0' < inStack[1][0] && inStack[1][0] < ' ') || inStack[1][0] == '\x7F') && out.IX == in.IX
+_iscntrl: ; PREREQ: -1 <= (int32_t)(*(uint32_t*)inStack[1] << 8) >> 8 && (int32_t)(*(uint32_t*)inStack[1] << 8) >> 8 < 1 << 8 CHECK: !!out.HL == (inStack[1][0] == '\0') && out.IX == in.IX
 	pop	hl
 	pop	de
 	push	de

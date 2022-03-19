@@ -13,7 +13,6 @@ __llshru: ; PREREQ: *(uint8_t*)inStack[1] < 64 CHECK: bitcast(uint64_t, tuple16_
 	jp	z, __llshrs.finish
 	push	de
 	push	hl
-.loop:
 	srl	b
 	jp	__llshrs.hijack_llshru
 
