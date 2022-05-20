@@ -13,6 +13,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#define STACK_FLOAT 1
+
 void gui_throttle(void) {}
 void gui_do_stuff(void) {}
 void gui_console_printf(const char *format, ...) {
@@ -109,7 +111,11 @@ static void print_regs(eZ80registers_t *regs, uint8_t stack[10][3]) {
           "\tHL %06X %06X HL' (SP+09) %06X\n"
           "\tIX %06X %06X SP  (SP+12) %06X\n"
           "\tIY %06X %06X PC  (SP+15) %06X\n"
+#if STACK_FLOAT
+          "\t(3) %-+15.8e  (SP+18) %06X\n"
+#else
           "\tABC %-+15.8e  (SP+18) %06X\n"
+#endif
           "\tEHL %-+15.8e  (SP+21) %06X\n"
           "\tABC %-+16.6a (SP+24) %06X\n"
           "\tEHL %-+16.6a (SP+27) %06X\n",
@@ -125,7 +131,11 @@ static void print_regs(eZ80registers_t *regs, uint8_t stack[10][3]) {
           stack[4][2] << 16 | stack[4][1] << 8 | stack[4][0],
           regs->IY, regs->PC,
           stack[5][2] << 16 | stack[5][1] << 8 | stack[5][0],
+#if STACK_FLOAT
+          *(float*)stack[1],
+#else
           bitcast(float, pair8_24_t, { regs->BC, regs->A }),
+#endif
           stack[6][2] << 16 | stack[6][1] << 8 | stack[6][0],
           bitcast(float, pair8_24_t, { regs->HL, regs->E }),
           stack[7][2] << 16 | stack[7][1] << 8 | stack[7][0],
@@ -144,6 +154,8 @@ static void hint(eZ80registers_t in, uint8_t inStack[10][3], eZ80registers_t out
   //fprintf(stderr, "%016lX -> %016lX\n", bitcast(uint64_t, tuple16_24_24_t, { in.HL, in.DE, in.BCS }), bitcast(uint64_t, tuple16_24_24_t, { out.HL, out.DE, out.BCS }));
   //fprintf(stderr, "%016lX -> %016lX != %016lX\n", *(int64_t*)inStack[1], bitcast(uint64_t, tuple16_24_24_t, { out.HL, out.DE, out.BCS }), labs(*(int64_t*)inStack[1]));
   //fprintf(stderr, "%016lX %% %016lX -> %016lX != %016lX\n", bitcast(int64_t, tuple16_24_24_t, { in.HL, in.DE, in.BCS }), *(int64_t*)inStack[1], bitcast(uint64_t, tuple16_24_24_t, { out.HL, out.DE, out.BCS }), bitcast(int64_t, tuple16_24_24_t, { in.HL, in.DE, in.BCS }) % *(int64_t*)inStack[1]);
+  //fprintf(stderr, "roundf(%-+15.8e) = %-+15.8e != %-+15.8e\n", *(float*)inStack[1], roundf(*(float*)inStack[1]), bitcast(float, pair8_24_t, { out.HL, out.E }));
+  //fprintf(stderr, "%08X\n", bitcast(uint32_t, float, roundf(*(float*)inStack[1])));
 }
 
 #define UINT64_C_(x) UINT64_C(x)
