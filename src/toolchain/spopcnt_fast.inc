@@ -3,8 +3,8 @@
 	section	.text
 	public	__spopcnt_fast
 __spopcnt_fast: ; CHECK: out.A == __builtin_popcount(in.HLs) && out.IX == in.IX
+	; Inlined implementation of __spopcnt
 	push	hl
-	xor	a, a
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
@@ -13,37 +13,29 @@ __spopcnt_fast: ; CHECK: out.A == __builtin_popcount(in.HLs) && out.IX == in.IX
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
+
+	ld	a, h
+	ld	h, l
+	cpl
+	ld	l, a
+
 	add	hl, hl
-	adc	a, l
+	sbc	a, h
 	add	hl, hl
-	adc	a, l
+	sbc	a, h
 	add	hl, hl
-	adc	a, l
+	sbc	a, h
 	add	hl, hl
-	adc	a, l
+	sbc	a, h
 	add	hl, hl
-	adc	a, l
+	sbc	a, h
 	add	hl, hl
-	adc	a, l
+	sbc	a, h
 	add	hl, hl
-	adc	a, l
+	sbc	a, h
+
 	add	hl, hl
-	adc	a, l
-	add	hl, hl
-	adc	a, l
-	add	hl, hl
-	adc	a, l
-	add	hl, hl
-	adc	a, l
-	add	hl, hl
-	adc	a, l
-	add	hl, hl
-	adc	a, l
-	add	hl, hl
-	adc	a, l
-	add	hl, hl
-	adc	a, l
-	add	hl, hl
-	adc	a, l
+	cpl
+	adc	a, 9
 	pop	hl
 	ret
