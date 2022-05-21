@@ -4,7 +4,7 @@
 	public	__spopcnt_fast
 __spopcnt_fast: ; CHECK: out.A == __builtin_popcount(in.HLs) && out.IX == in.IX
 	; Inlined implementation of __spopcnt
-	push	hl
+	; Destroys: HL
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
@@ -37,5 +37,4 @@ __spopcnt_fast: ; CHECK: out.A == __builtin_popcount(in.HLs) && out.IX == in.IX
 	add	hl, hl
 	cpl
 	adc	a, 9
-	pop	hl
 	ret

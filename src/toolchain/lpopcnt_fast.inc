@@ -4,7 +4,7 @@
 	public	__lpopcnt_fast
 __lpopcnt_fast: ; CHECK: out.A == __builtin_popcount(bitcast(uint32_t, pair8_24_t, { in.HL, in.E })) && out.IX == in.IX
 	; Inlined implementation of __lpopcnt
-	push	hl
+	; Destroys: HL
 	ld	a, l
 	cpl
 	ld	l, a
@@ -51,5 +51,4 @@ __lpopcnt_fast: ; CHECK: out.A == __builtin_popcount(bitcast(uint32_t, pair8_24_
 	add	hl, hl
 	cpl
 	adc	a, 17
-	pop	hl
 	ret

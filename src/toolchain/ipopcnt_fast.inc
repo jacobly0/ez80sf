@@ -2,9 +2,9 @@
 
 	section	.text
 	public	__ipopcnt_fast
-__ipopcnt_fast: ; CHECK: out.A = __builtin_popcount(in.HL) && out.IX == in.IX
+__ipopcnt_fast: ; CHECK: out.A == __builtin_popcount(in.HL) && out.IX == in.IX
 	; Inlined implementation of __ipopcnt
-	push	hl
+	; Destroys: HL
 	ld	a, l
 	cpl
 	ld	l, a
@@ -46,5 +46,4 @@ __ipopcnt_fast: ; CHECK: out.A = __builtin_popcount(in.HL) && out.IX == in.IX
 	add	hl, hl
 	cpl
 	adc	a, 9
-	pop	hl
 	ret
