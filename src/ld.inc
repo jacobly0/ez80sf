@@ -3,3 +3,4 @@ iterate name, extern, ident, private, public, section, weak
 	end calminstruction
 end iterate
 PREFER_OS_CRT := 0
+PREFER_OS_LIBC := 0
