@@ -45,25 +45,71 @@ __fpadd: ; CHECK: same(bitcast(float, pair8_24_t, { out.BC, out.A }), bitcast(fl
 .sorted:
 	cp	a, 26
 	jq	nc, .largest
-	push	hl
+	; Extend to 32 bits and shift left by ~(amount - 1) & 7
+	dec	a
 	ld	b, a
 	xor	a, a
-	sbc	hl, hl
-	add	hl, sp
-.shift:
-	inc	hl
-	inc	hl
-	srl	(hl)
-	dec	hl
-	rr	(hl)
-	dec	hl
-	rr	(hl)
-	rra
-	jq	nc, .flushed1
-	or	a, b
-.flushed1:
-	djnz	.shift
+	srl	b
+	jq	c, .noshift1
+	add	hl, hl
+	rla
+.noshift1:
+	srl	b
+	jq	c, .noshift2
+	repeat	2
+	add	hl, hl
+	rla
+	end repeat
+.noshift2:
+	srl	b
+	jq	c, .noshift4
+	repeat	4
+	add	hl, hl
+	rla
+	end repeat
+.noshift4:
+	; Shift right by (amount + 7) / 8 * 8, truncating to 24 bits
+	; The last 2 bits shifted out are in A, while any remaining non-zero
+	; bits are aggregated into the lower bits of A
+	push	af
+	inc	sp
+	push	hl
+	inc	sp
+	jq	nz, .noshift8
+	; Shift by 8 for amounts between 1 and 8
+	ld	a, l
 	pop	hl
+	inc	sp
+	jq	.rounded
+
+.noshift8:
+	inc	sp
+	xor	a, a
+	cp	a, l
+	rla
+	djnz	.noshift16
+	; Shift by 16 for amounts between 9 and 16
+	or	a, h
+	pop	hl
+	jq	.rounded
+
+.noshift24:
+	; Shift by 32 for amount of 25
+	cp	a, l
+	rla
+	or	a, h
+	sbc	hl, hl
+	jq	.rounded
+
+.noshift16:
+	cp	a, h
+	rla
+	pop	hl
+	djnz	.noshift24
+	; Shift by 24 for amounts between 17 and 24
+	or	a, l
+	ld	l, h
+	ld	h, b ;0
 .rounded:
 	ld	b, d
 	pop	de
@@ -75,6 +121,37 @@ __fpadd: ; CHECK: same(bitcast(float, pair8_24_t, { out.BC, out.A }), bitcast(fl
 	ld	c, l
 	pop	hl
 	jq	.subtract
+
+.nonfinite1:
+	inc	d
+	jq	z, .nonfinite
+.return1:
+	pop	bc
+.return1.pop1:
+	pop	de
+	ld	a, d
+.return1.pop2:
+	xor	a, e
+	pop	bc
+.return:
+	pop	hl
+	pop	de
+	ret
+
+.largest:
+	ld	a, d
+	cp	a, e
+	jq	z, .return1
+.return2:
+	pop	bc
+.return2.pop1:
+	pop	de
+.return2.pop2:
+	ld	a, e
+	pop	bc
+	pop	bc
+	push	bc
+	jq	.return
 
 .add:
 	ld	c, h
@@ -115,37 +192,6 @@ __fpadd: ; CHECK: same(bitcast(float, pair8_24_t, { out.BC, out.A }), bitcast(fl
 	pop	bc
 	pop	de
 	ret
-
-.nonfinite1:
-	inc	d
-	jq	z, .nonfinite
-.return1:
-	pop	bc
-.return1.pop1:
-	pop	de
-	ld	a, d
-.return1.pop2:
-	xor	a, e
-	pop	bc
-.return:
-	pop	hl
-	pop	de
-	ret
-
-.largest:
-	ld	a, d
-	cp	a, e
-	jq	z, .return1
-.return2:
-	pop	bc
-.return2.pop1:
-	pop	de
-.return2.pop2:
-	ld	a, e
-	pop	bc
-	pop	bc
-	push	bc
-	jq	.return
 
 .nonfinite:
 	xor	a, a
