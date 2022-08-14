@@ -1,15 +1,13 @@
 __fpupop1:
 	ld	bc, 0800000h
 __fpupop2:
+	sla	e
+	jq	z, .denormal
 	add	hl, bc
-	rl	e
-	add	hl, bc
-	jq	nz, .notdenormal
-	inc	e
-	ccf
-.notdenormal:
 	ret	nc
 	add	hl, bc
+.denormal:
+	inc	e
 	ret
 
 __fppack.normalize:
