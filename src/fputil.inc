@@ -44,15 +44,20 @@ __fppack:
 	ret
 
 .normalize.entry:
-	add	hl, de
 	add	a, a
+	adc	hl, hl
+	ret	m
+	ccf
+	jr	nz, .normalize.continue
+	ld	b, 1
 .normalize.loop:
 	adc	hl, hl
 	ret	m
+.normalize.continue:
 	djnz	.normalize.loop
 	add	hl, de
 	ret
-	
+
 __fppack2.normalize:
 	dec	b
 	call	nz, .loop
