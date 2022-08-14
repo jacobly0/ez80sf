@@ -11,13 +11,11 @@ __fpupop2:
 	ret
 
 __fppack.normalize:
-	add	a, a
-	adc	hl, hl
+	dec	b
+	call	nz, .entry
 __fppack:
 	add	hl, de
-	jq	c, .normalized
-	djnz	.normalize
-	add	hl, de
+	jq	nc, .normalize
 .normalized:
 	add	a, a
 	ld	a, b
@@ -45,14 +43,22 @@ __fppack:
 	ex	de, hl
 	ret
 
-__fppack2.normalize:
-	add	ix, ix
+.normalize.entry:
+	add	hl, de
+	add	a, a
+.normalize.loop:
 	adc	hl, hl
+	ret	m
+	djnz	.normalize.loop
+	add	hl, de
+	ret
+	
+__fppack2.normalize:
+	dec	b
+	call	nz, .loop
 __fppack2:
 	add	hl, de
-	jq	c, .normalized
-	djnz	.normalize
-	add	hl, de
+	jq	nc, .normalize
 .normalized:
 	ld	a, b
 	push	ix
@@ -82,4 +88,12 @@ __fppack2:
 	sla	c
 	rra
 	ex	de, hl
+	ret
+
+.normalize.loop:
+	add	ix, ix
+	adc	hl, hl
+	ret	m
+	djnz	.normalize.loop
+	add	hl, de
 	ret
