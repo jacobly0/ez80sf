@@ -75,41 +75,33 @@ __fpadd: ; CHECK: same(bitcast(float, pair8_24_t, { out.BC, out.A }), bitcast(fl
 	inc	sp
 	push	hl
 	inc	sp
-	jq	nz, .noshift8
-	; Shift by 8 for amounts between 1 and 8
 	ld	a, l
+	jq	nz, .shift16
+	; Shift by 8 for amounts between 1 and 8
 	pop	hl
 	inc	sp
 	jq	.rounded
 
-.noshift8:
-	inc	sp
-	xor	a, a
-	cp	a, l
-	rla
-	djnz	.noshift16
+.shift16:
 	; Shift by 16 for amounts between 9 and 16
-	or	a, h
+	ld	e, h
+	inc	sp
 	pop	hl
-	jq	.rounded
-
-.noshift24:
-	; Shift by 32 for amount of 25
-	cp	a, l
-	rla
-	or	a, h
-	sbc	hl, hl
-	jq	.rounded
-
-.noshift16:
-	cp	a, h
-	rla
-	pop	hl
-	djnz	.noshift24
+	dec	b
+	jq	z, .flush
+.shift8more:
 	; Shift by 24 for amounts between 17 and 24
-	or	a, l
+	or	a, e
+	ld	e, l
 	ld	l, h
-	ld	h, b ;0
+	ld	h, 0
+	; Shift by 32 for amount of 25
+	djnz	.shift8more
+.flush:
+	sub	a, 1
+	sbc	a, a
+	inc	a
+	or	a, e
 .rounded:
 	ld	b, d
 	pop	de
