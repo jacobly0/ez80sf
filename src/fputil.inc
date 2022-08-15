@@ -66,16 +66,15 @@ __fppack2:
 	jq	nc, .normalize
 .normalized:
 	ld	a, b
-	push	ix
-	ex	(sp), hl
-	or	a, a
-	adc	hl, hl
-	pop	hl
+	add	ix, de
 	jq	nc, .rounded
-	jq	nz, .round
+	dec	ix
+	add	ix, de
+	jq	nc, .round
 	bit	0, l
 	jq	z, .rounded
 .round:
+	scf
 	adc	hl, de
 	adc	a, e
 .clear:
