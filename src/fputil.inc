@@ -1,25 +1,21 @@
 __fpupop1:
 	ld	bc, 0800000h
 __fpupop2:
+	sla	e
+	jq	z, .denormal
 	add	hl, bc
-	rl	e
-	add	hl, bc
-	jq	nz, .notdenormal
-	inc	e
-	ccf
-.notdenormal:
 	ret	nc
 	add	hl, bc
+.denormal:
+	inc	e
 	ret
 
 __fppack.normalize:
-	add	a, a
-	adc	hl, hl
+	dec	b
+	call	nz, .entry
 __fppack:
 	add	hl, de
-	jq	c, .normalized
-	djnz	.normalize
-	add	hl, de
+	jq	nc, .normalize
 .normalized:
 	add	a, a
 	ld	a, b
@@ -47,26 +43,38 @@ __fppack:
 	ex	de, hl
 	ret
 
-__fppack2.normalize:
-	add	ix, ix
+.normalize.entry:
+	add	a, a
 	adc	hl, hl
+	ret	m
+	ccf
+	jr	nz, .normalize.continue
+	ld	b, 1
+.normalize.loop:
+	adc	hl, hl
+	ret	m
+.normalize.continue:
+	djnz	.normalize.loop
+	add	hl, de
+	ret
+
+__fppack2.normalize:
+	dec	b
+	call	nz, .loop
 __fppack2:
 	add	hl, de
-	jq	c, .normalized
-	djnz	.normalize
-	add	hl, de
+	jq	nc, .normalize
 .normalized:
 	ld	a, b
-	push	ix
-	ex	(sp), hl
-	or	a, a
-	adc	hl, hl
-	pop	hl
+	add	ix, de
 	jq	nc, .rounded
-	jq	nz, .round
+	dec	ix
+	add	ix, de
+	jq	nc, .round
 	bit	0, l
 	jq	z, .rounded
 .round:
+	scf
 	adc	hl, de
 	adc	a, e
 .clear:
@@ -84,4 +92,12 @@ __fppack2:
 	sla	c
 	rra
 	ex	de, hl
+	ret
+
+.normalize.loop:
+	add	ix, ix
+	adc	hl, hl
+	ret	m
+	djnz	.normalize.loop
+	add	hl, de
 	ret
