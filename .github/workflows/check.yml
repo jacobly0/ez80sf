@@ -1,6 +1,6 @@
 name: Check
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   check:
@@ -12,7 +12,7 @@ jobs:
         offset: [1, 2]
         include:
           - runs-on: ubuntu
-            make-args: CC=clang-11 CXX=clang++-11 LDFLAGS=-fuse-ld=lld
+            make-args: CC=clang-12 CXX=clang++-12 LDFLAGS=-fuse-ld=lld
             begin: 1
             end: 2
           - runs-on: macos
