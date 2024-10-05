@@ -17,30 +17,17 @@ __fppack:
 	add	hl, de
 	jq	nc, .normalize
 .normalized:
-	add	a, a
-	ld	a, b
-	jq	nc, .rounded
-	jq	nz, .round
-	bit	0, l
-	jq	z, .rounded
-.round:
+	rrc	l
+	rlc	l
+	adc	a, 07Fh
 	adc	hl, de
+	ld	a, b
 	adc	a, e
-	cp	a, 0FFh
-	jq	z, .infinite
-.clear:
-	add	hl, de
-	jq	nc, .clear
-.rounded:
 	srl	c
 	rra
-	ret	nc
+	srl	b
+	ret	c
 	add	hl, de
-	ret
-.infinite:
-	srl	c
-	rra
-	ex	de, hl
 	ret
 
 .normalize.entry:
