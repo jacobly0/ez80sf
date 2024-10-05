@@ -1,3 +1,14 @@
+; IEEE single precision comparison with unordered checks
+; z = euhl == aubc || isunordered(euhl, aubc)
+; c = !isunordered(euhl, aubc)
+__fpcmpu: ; CHECK: out.flags.C == !isunordered(bitcast(float, pair8_24_t, { in.HL, in.E }), bitcast(float, pair8_24_t, { in.BC, in.A })) && out.flags.Z == (!out.flags.C || (bitcast(float, pair8_24_t, { in.HL, in.E }) == bitcast(float, pair8_24_t, { in.BC, in.A }))) && out.A == in.A && out.BC == in.BC && out.DE == in.DE && out.HL == in.HL && out.IX == in.IX && out.IY == in.IY
+	call	__fpcmp
+	ret	c	; If euhl < aubc: C = 1, Z = 0
+	scf
+	ret	p	; If euhl >= aubc: C = 1, Z = (euhl == aubc)
+	cp	a, a	; If unordered: C = 0, Z = 1
+	ret
+
 ; IEEE single precision comparison
 ; z = euhl == aubc
 ; c = euhl < aubc
