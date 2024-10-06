@@ -18,81 +18,57 @@ __fpdiv: ; CHECK: same(bitcast(float, pair8_24_t, { out.BC, out.A }), bitcast(fl
 	jq	z, .nonfinite.2
 	add	a, 080h
 	dec	d
-	ld	d, a
-	ld	a, e
-	jq	z, .subnormal.divisor
-	jq	nc, .add
-	sub	a, d
-	ld	c, a
-	sbc	a, a
-	jq	.continue
-
-.divisor.zero:
-	pop	de
-	sbc	hl, de
-	jq	nz, .return.bc
-.return.nan:
-	set	7, b
-.return.bc:
-	pop	af, hl, de
-	or	a, 07Fh
-	ret
-
-.subnormal.divisor:
+	jq	nz, .exponent.adjust
 	ex	(sp), hl
 	add	hl, bc
 	jq	c, .normalize.divisor.done
 	sbc	hl, bc
 	jq	z, .divisor.zero
 .normalize.divisor.loop:
-	dec	d
+	dec	a
 	add	hl, hl
 	add	hl, bc
 	jq	nc, .normalize.divisor.loop
 .normalize.divisor.done:
 	add	hl, bc
 	ex	(sp), hl
-.add:
-	sub	a, d
+.exponent.adjust:
+	ex	de, hl	; ude=UHL, uhl=UDE
+	ld	h, b
+	rl	b
 	ld	c, a
-	sbc	a, a
-	inc	a
-.continue:
-	ld	b, a
-	pop	de
-	ex	de, hl  ; uhl=UDE, ude=UHL
+	sbc	hl, bc
+	ld	b, h
+	ld	c, l
+	pop	hl
 	add	hl, de	; uhl=UHL+UDE
 	ex	de, hl	; ude=UHL+UDE, uhl=UHL
-	or	a, a
+	xor	a, a
 	sbc	hl, de	; uhl=-UDE
 	ex	de, hl	; ude=-UDE, uhl=UHL+UDE
-	or	a, a
-	adc	hl, de	; uhl=UHL
-	jq	z, .dividend.zero
+	add	hl, de	; uhl=UHL
 .normalize.dividend.loop:
 	add	hl, de
 	jq	c, .normalize.dividend.done
 	sbc	hl, de
+	jq	z, .dividend.zero
 	dec	bc
 	add	hl, hl
 	jq	nc, .normalize.dividend.loop
 	add	hl, de
 .normalize.dividend.done:
-	djnz	.no_overflow
-	ld	c, b
-	jq	.return.bc
-.no_overflow:
+	cp	a, b
+	jq	nc, .return.overflow
 	dec	bc
 	dec	bc
 	ld	a, c
 	inc	b
 	ld	bc, 0800000h or (23 shl 8)
 	jq	z, .divide.entry.normal
-	scf
 	adc	a, b
-	jq	nc, .underflow
 	ld	b, a
 	ld	a, c
+	jq	nc, .return.underflow
 	push	iy
 	ld	iy, 0
 	jq	nz, .divide.entry.subnormal
@@ -100,25 +76,37 @@ __fpdiv: ; CHECK: same(bitcast(float, pair8_24_t, { out.BC, out.A }), bitcast(fl
 	add	hl, de
 	jq	.subsubnormal
 
+.divisor.zero:
+	pop	de
+	sbc	hl, de
+	jq	nz, .return.nonfinite
+.return.nan:
+	inc	b
+.return.overflow:
+	ld	c, b
+.return.nonfinite:
+	pop	af, hl, de
+	or	a, 07Fh
+	ret
+
 .nonfinite.1:
 	inc	d
 	pop	de
 	jq	z, .return.nan
-	pop	af
-	or	a, 07Fh
-	jq	.return.hl
+	push	hl
+	pop	bc
+	jq	.return.nonfinite
 
 .nonfinite.2:
 	pop	hl
 	dec	hl
 	add	hl, bc
 	jq	c, .return.nan
-.underflow:
+.return.underflow:
 	sbc	hl, hl
 .dividend.zero:
-	pop	af
-	and	a, 080h
-	jq	.return.hl
+	pop	de
+	jq	.return
 
 .divide.entry.normal:
 	push	iy
@@ -156,12 +144,12 @@ __fpdiv: ; CHECK: same(bitcast(float, pair8_24_t, { out.BC, out.A }), bitcast(fl
 	pop	de
 	ld	e, a
 	adc	a, 1
+	srl	e
+	jq	nc, .return
+	add	hl, bc
+.return:
 	sla	d
 	rra
-	srl	e
-	jq	nc, .return.hl
-	add	hl, bc
-.return.hl:
 	ex	(sp), hl
 	pop	bc, de
 	ret
