@@ -23,7 +23,7 @@ __fpdiv: ; CHECK: same(bitcast(float, pair8_24_t, { out.BC, out.A }), bitcast(fl
 	jq	z, .subnormal.divisor
 	jq	nc, .add
 	sub	a, d
-	ld	e, a
+	ld	c, a
 	sbc	a, a
 	jq	.continue
 
@@ -37,10 +37,6 @@ __fpdiv: ; CHECK: same(bitcast(float, pair8_24_t, { out.BC, out.A }), bitcast(fl
 	pop	af, hl, de
 	or	a, 07Fh
 	ret
-
-.overflow:
-	ld	bc, 0800000h
-	jq	.return.bc
 
 .subnormal.divisor:
 	ex	(sp), hl
@@ -58,47 +54,50 @@ __fpdiv: ; CHECK: same(bitcast(float, pair8_24_t, { out.BC, out.A }), bitcast(fl
 	ex	(sp), hl
 .add:
 	sub	a, d
-	ld	e, a
+	ld	c, a
 	sbc	a, a
 	inc	a
 .continue:
-	ld	d, a
-	pop	bc
-	add	hl, bc
+	ld	b, a
+	pop	de
+	ex	de, hl  ; uhl=UDE, ude=UHL
+	add	hl, de	; uhl=UHL+UDE
+	ex	de, hl	; ude=UHL+UDE, uhl=UHL
 	or	a, a
-	sbc	hl, bc
+	sbc	hl, de	; uhl=-UDE
+	ex	de, hl	; ude=-UDE, uhl=UHL+UDE
+	or	a, a
+	adc	hl, de	; uhl=UHL
 	jq	z, .dividend.zero
-	or	a, a
 .normalize.dividend.loop:
-	sbc	hl, bc
-	jq	nc, .normalize.dividend.done
-	add	hl, bc
-	dec	de
+	add	hl, de
+	jq	c, .normalize.dividend.done
+	sbc	hl, de
+	dec	bc
 	add	hl, hl
 	jq	nc, .normalize.dividend.loop
-	or	a, a
-	sbc	hl, bc
+	add	hl, de
 .normalize.dividend.done:
-	dec	d
-	jq	z, .overflow
-	dec	de
-	ld	a, e
-	dec	de
-	inc	d
-	ex	de, hl
-	ld	hl, 1
-	jq	z, .divide.entry
-	dec	a
-	cp	a, -24
-	jq	c, .underflow
-.subnormal:
-	add	hl, hl
-	inc	a
-	jq	nz, .subnormal
-	inc	a
-	jq	nc, .divide.entry
-	ex	de, hl
-	add	hl, bc
+	djnz	.no_overflow
+	ld	c, b
+	jq	.return.bc
+.no_overflow:
+	dec	bc
+	dec	bc
+	ld	a, c
+	inc	b
+	ld	bc, 0800000h or (23 shl 8)
+	jq	z, .divide.entry.normal
+	scf
+	adc	a, b
+	jq	nc, .underflow
+	ld	b, a
+	ld	a, c
+	push	iy
+	ld	iy, 0
+	jq	nz, .divide.entry.subnormal
+	dec	hl
+	add	hl, de
 	jq	.subsubnormal
 
 .nonfinite.1:
@@ -111,60 +110,57 @@ __fpdiv: ; CHECK: same(bitcast(float, pair8_24_t, { out.BC, out.A }), bitcast(fl
 
 .nonfinite.2:
 	pop	hl
-	or	a, a
-	sbc	hl, bc
-	jq	nz, .return.nan
-	inc	hl
-.underflow:
 	dec	hl
+	add	hl, bc
+	jq	c, .return.nan
+.underflow:
+	sbc	hl, hl
 .dividend.zero:
 	pop	af
 	and	a, 080h
 	jq	.return.hl
 
+.divide.entry.normal:
+	push	iy
+	ld	iyl, b
 .divide.loop:
+	add	iy, iy
 	add	hl, hl
 	jq	c, .divide.overflow
-	sbc	hl, bc
-	jq	nc, .divide.setbit
-	add	hl, bc
-	ex	de, hl
-	add	hl, hl
-	ex	de, hl
-	jq	nc, .divide.loop
+	add	hl, de
+	jq	c, .divide.setbit
+	sbc	hl, de
+	djnz	.divide.loop
 	add	hl, hl
 	jq	.divide.finish
 .divide.overflow:
-	or	a, a
-	sbc	hl, bc
+	add	hl, de
 .divide.setbit:
-	ex	de, hl
-.divide.entry:
+.divide.entry.subnormal:
+	inc	iy
+	djnz	.divide.loop
 	add	hl, hl
-	inc	hl
-	ex	de, hl
-	jq	nc, .divide.loop
-	add	hl, hl
-.subsubnormal:
 	inc	hl
 .divide.finish:
-	ccf
-	jq	nc, .round
-	sbc	hl, bc
+	jq	c, .round
+	dec	de
+	add	hl, de
 .round:
+	ccf
+.subsubnormal:
+	lea	de, iy
+	pop	iy
 	sbc	hl, hl
 	inc	hl
 	add	hl, de
-	ld	de, 0800000h
-	jq	nc, .rounded
-	add	hl, de
-	inc	a
-.rounded:
-	pop	bc
-	sla	b
+	pop	de
+	ld	e, a
+	adc	a, 1
+	sla	d
 	rra
-	jq	c, .return.hl
-	add	hl, de
+	srl	e
+	jq	nc, .return.hl
+	add	hl, bc
 .return.hl:
 	ex	(sp), hl
 	pop	bc, de
