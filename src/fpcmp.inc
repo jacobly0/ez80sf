@@ -1,19 +1,19 @@
-; IEEE single precision comparison with unordered checks
+; IEEE single precision unordered comparison
 ; z = euhl == aubc || isunordered(euhl, aubc)
 ; c = !isunordered(euhl, aubc)
 __fpcmpu: ; CHECK: out.flags.C == !isunordered(bitcast(float, pair8_24_t, { in.HL, in.E }), bitcast(float, pair8_24_t, { in.BC, in.A })) && out.flags.Z == (!out.flags.C || (bitcast(float, pair8_24_t, { in.HL, in.E }) == bitcast(float, pair8_24_t, { in.BC, in.A }))) && out.A == in.A && out.BC == in.BC && out.DE == in.DE && out.HL == in.HL && out.IX == in.IX && out.IY == in.IY
-	call	__fpcmp
+	call	__fpcmpo
 	ret	c	; If euhl < aubc: C = 1, Z = 0
 	scf
 	ret	p	; If euhl >= aubc: C = 1, Z = (euhl == aubc)
 	cp	a, a	; If unordered: C = 0, Z = 1
 	ret
 
-; IEEE single precision comparison
+; IEEE single precision ordered comparison
 ; z = euhl == aubc
 ; c = euhl < aubc
 ; s = !(euhl >= aubc)
-__fpcmp: ; CHECK: out.flags.Z == (bitcast(float, pair8_24_t, { in.HL, in.E }) == bitcast(float, pair8_24_t, { in.BC, in.A })) && out.flags.C == (bitcast(float, pair8_24_t, { in.HL, in.E }) < bitcast(float, pair8_24_t, { in.BC, in.A })) && out.flags.S == !(bitcast(float, pair8_24_t, { in.HL, in.E }) >= bitcast(float, pair8_24_t, { in.BC, in.A })) && out.A == in.A && out.BC == in.BC && out.DE == in.DE && out.HL == in.HL && out.IX == in.IX && out.IY == in.IY
+__fpcmpo: ; CHECK: out.flags.Z == (bitcast(float, pair8_24_t, { in.HL, in.E }) == bitcast(float, pair8_24_t, { in.BC, in.A })) && out.flags.C == (bitcast(float, pair8_24_t, { in.HL, in.E }) < bitcast(float, pair8_24_t, { in.BC, in.A })) && out.flags.S == !(bitcast(float, pair8_24_t, { in.HL, in.E }) >= bitcast(float, pair8_24_t, { in.BC, in.A })) && out.A == in.A && out.BC == in.BC && out.DE == in.DE && out.HL == in.HL && out.IX == in.IX && out.IY == in.IY
 	xor	a, e
 	jq	z, .maybeEqual
 	cp	a, 080h
@@ -127,4 +127,52 @@ __fpcmp: ; CHECK: out.flags.Z == (bitcast(float, pair8_24_t, { in.HL, in.E }) ==
 	rr	a ; Z = 0, S = 1
 	rla	; Restore A
 	ccf	; C = 0
+	ret
+
+; IEEE single precision comparison (flag outputs for NaN inputs are undefined)
+; z = euhl == aubc
+; s = euhl < aubc = !(euhl >= aubc)
+__fpcmp: ; CHECK: (isunordered(bitcast(float, pair8_24_t, { in.HL, in.E }), bitcast(float, pair8_24_t, { in.BC, in.A })) || (out.flags.Z == (bitcast(float, pair8_24_t, { in.HL, in.E }) == bitcast(float, pair8_24_t, { in.BC, in.A })) && out.flags.S == (bitcast(float, pair8_24_t, { in.HL, in.E }) < bitcast(float, pair8_24_t, { in.BC, in.A })))) && out.A == in.A && out.BC == in.BC && out.DE == in.DE && out.HL == in.HL && out.IX == in.IX && out.IY == in.IY
+	cp	a, e
+	jq	z, .maybeEqual
+	add	a, a
+	rra
+	jq	z, .maybeBothZero
+	; Compare sign and upper 7 exponent bits, which are not equal
+	cp	a, e
+	inc	e
+	dec	e	; S = sign(euhl), Z = 0 because E > A
+	ret	c
+	cp	a, 080h	; S = !sign(aubc), Z = 0 because A != 080h
+	ret
+
+.maybeBothZero:
+	xor	a, e
+	cp	a, 080h
+	jq	nz, .notBothZero
+	xor	a, e
+	adc	hl, bc
+	jq	c, .notBothZeroFixup
+	ret	z	; Both inputs are zero, return Z=1, S=0
+.notBothZeroFixup:
+	xor	a, e
+	sbc	hl, bc
+.notBothZero:
+	xor	a, e
+	cp	a, e
+	inc	e
+	dec	e	; S = sign(euhl), Z = 0 because E > A
+	ret	c
+	cp	a, 07Fh	; S = !sign(aubc), Z = 0 because (A & 07Fh) == 0
+	ret
+
+.maybeEqual:
+	sbc	hl, bc
+	add	hl, bc
+	ret	z
+	; XOR the carry with the input sign and place into the output sign
+	sbc	a, a
+	xor	a, e
+	or	a, 07Fh ; Affect S flag, Z = 0
+	ld	a, e
 	ret
