@@ -133,40 +133,38 @@ __fpcmpo: ; CHECK: out.flags.Z == (bitcast(float, pair8_24_t, { in.HL, in.E }) =
 ; z = euhl == aubc
 ; s = euhl < aubc = !(euhl >= aubc)
 __fpcmp: ; CHECK: (isunordered(bitcast(float, pair8_24_t, { in.HL, in.E }), bitcast(float, pair8_24_t, { in.BC, in.A })) || (out.flags.Z == (bitcast(float, pair8_24_t, { in.HL, in.E }) == bitcast(float, pair8_24_t, { in.BC, in.A })) && out.flags.S == (bitcast(float, pair8_24_t, { in.HL, in.E }) < bitcast(float, pair8_24_t, { in.BC, in.A })))) && out.A == in.A && out.BC == in.BC && out.DE == in.DE && out.HL == in.HL && out.IX == in.IX && out.IY == in.IY
-	cp	a, e
+	sub	a, e
 	jq	z, .maybeEqual
-	add	a, a
-	rra
+	cp	a, 080h
 	jq	z, .maybeBothZero
 	; Compare sign and upper 7 exponent bits, which are not equal
-	cp	a, e
+	add	a, e
 	inc	e
 	dec	e	; S = sign(euhl), Z = 0 because E > A
 	ret	c
-	cp	a, 080h	; S = !sign(aubc), Z = 0 because A != 080h
+.notBothZero:
+	cp	a, 080h	; S = !sign(aubc)
+	ret	nz
+	cp	a, e ; S = !sign(aubc), Z = 0 because A == 080h and A > E and A - E != 080h
 	ret
 
 .maybeBothZero:
-	xor	a, e
-	cp	a, 080h
+	add	a, e
+	add	a, a
+	rra
 	jq	nz, .notBothZero
-	xor	a, e
 	adc	hl, bc
 	jq	c, .notBothZeroFixup
 	ret	z	; Both inputs are zero, return Z=1, S=0
 .notBothZeroFixup:
-	xor	a, e
+	or	a, a
 	sbc	hl, bc
-.notBothZero:
-	xor	a, e
-	cp	a, e
-	inc	e
-	dec	e	; S = sign(euhl), Z = 0 because E > A
-	ret	c
-	cp	a, 07Fh	; S = !sign(aubc), Z = 0 because (A & 07Fh) == 0
+	dec	a	; S = !sign(aubc), Z = 0 because (A & 07Fh) == 0
+	cpl	; Restore A, preserve S and Z
 	ret
 
 .maybeEqual:
+	ld	a, e
 	sbc	hl, bc
 	add	hl, bc
 	ret	z
