@@ -112,7 +112,7 @@ __fpadd: ; CHECK: same(bitcast(float, pair8_24_t, { out.BC, out.A }), bitcast(fl
 	add	hl, bc
 	ld	c, l
 	pop	hl
-	jq	.subtract
+	djnz	.subtract	;always taken
 
 .nonfinite1:
 	inc	d
@@ -149,6 +149,7 @@ __fpadd: ; CHECK: same(bitcast(float, pair8_24_t, { out.BC, out.A }), bitcast(fl
 	ld	c, h
 	pop	hl
 	add	hl, de
+	dec	b
 	jq	nc, .done
 	ex	de, hl
 	sbc	hl, hl
@@ -163,8 +164,9 @@ __fpadd: ; CHECK: same(bitcast(float, pair8_24_t, { out.BC, out.A }), bitcast(fl
 	or	a, 1
 .flushed2:
 	inc	b
+	inc	b
 	jq	z, .infinite
-	djnz	.done2	;always taken
+	djnz	.done	;always taken
 
 .borrow:
 	inc	c
@@ -174,13 +176,9 @@ __fpadd: ; CHECK: same(bitcast(float, pair8_24_t, { out.BC, out.A }), bitcast(fl
 	neg
 	sbc	hl, de
 	jq	c, .borrow
-	jq	nz, .done
-	ld	c, l
 .done:
-	dec	b
-.done2:
 	ld	de, 0800000h
-	call	__fppack
+	call	nz, __fppack
 	pop	bc
 	ex	(sp), hl
 	pop	bc
