@@ -176,6 +176,8 @@ __fpadd: ; CHECK: same(bitcast(float, pair8_24_t, { out.BC, out.A }), bitcast(fl
 	neg
 	sbc	hl, de
 	jq	c, .borrow
+	jq	nz, .done
+	or	a, a
 .done:
 	ld	de, 0800000h
 	call	nz, __fppack
