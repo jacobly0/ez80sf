@@ -36,7 +36,7 @@ typedef struct pair8_24 { uint32_t x : 24, y : 8; } pair8_24_t;
 typedef struct tuple16_24_24 { uint64_t x : 24, y : 24, z : 16; } tuple16_24_24_t;
 #define bitcast(dst, src, ...) ((union { src __src; dst __dst; }){ __VA_ARGS__ }.__dst)
 bool same(float x, float y) {
-  return (x == y && copysign(1.0f, x) == copysign(1.0f, y)) || (isnan(x) && isnan(y));
+  return (x == y && !signbit(x) == !signbit(y)) || (isnan(x) && isnan(y));
 }
 
 static bool prereq(eZ80registers_t in, uint8_t inStack[10][3]) {
