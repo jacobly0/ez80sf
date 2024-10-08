@@ -34,10 +34,12 @@ __fppack:
 	add	a, a
 	adc	hl, hl
 	ret	m
-	ccf
-	jr	nz, .normalize.continue
+	jq	nz, .normalize.continue
+	or	a, a
+	jq	nz, .normalize.continue
 	ld	b, 1
 .normalize.loop:
+	add	a, a
 	adc	hl, hl
 	ret	m
 .normalize.continue:
