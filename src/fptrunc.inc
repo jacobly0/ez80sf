@@ -12,27 +12,24 @@ __fpfloor: ; CHECK: same(bitcast(float, pair8_24_t, { out.BC, out.A }), floorf(b
 	jq	z, .mantissa.zero
 	sub	a, 07Fh
 	jq	c, .return.one
-	add	a, -24
-	jq	c, .return
-	ld	l, c
+	sub	a, 24
+	jq	nc, .return
+	push	bc
 	cpl
 	ld	c, a
-	ld	a, l
-	push	hl
-	sbc	hl, hl
-	inc	hl
-	call	__ishl
-	ld	c, a
-	dec	hl
-	dec	bc
-	call	__ior
-	ld	bc, 1
-	add	hl, bc
-	ex	(sp), hl
 	ld	a, h
-	adc	a, b
-	ld	h, a
+	sbc	hl, hl
+	call	__ishl
+	ex	(sp), hl
 	pop	bc
+	dec	hl
+	call	__iand
+	or	a, a
+	sbc	hl, bc
+	sbc	a, -1
+	push	hl
+	pop	bc
+	ld	h, a
 .return:
 	ld	a, h
 	pop	hl
