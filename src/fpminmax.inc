@@ -27,7 +27,13 @@ __fpmax: ; CHECK: sameignzerosign(bitcast(float, pair8_24_t, { out.BC, out.A }),
 	; Carry into bit 31 is equivalent to carry XOR overflow
 	jq	nc, .nocarry
 	ret	po
-	jq	__fpmin.return
+;	jq	.return
+	virtual
+		jr	nc, $
+		load .jr_nc : byte from $$
+	end virtual
+	db	.jr_nc
 .nocarry:
 	ret	pe
+.return:
 	jq	__fpmin.return
