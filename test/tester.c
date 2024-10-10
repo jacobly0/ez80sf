@@ -35,8 +35,17 @@ static const uint8_t halt = 0166;
 typedef struct pair8_24 { uint32_t x : 24, y : 8; } pair8_24_t;
 typedef struct tuple16_24_24 { uint64_t x : 24, y : 24, z : 16; } tuple16_24_24_t;
 #define bitcast(dst, src, ...) ((union { src __src; dst __dst; }){ __VA_ARGS__ }.__dst)
+
 bool same(float x, float y) {
   return (x == y && !signbit(x) == !signbit(y)) || (isnan(x) && isnan(y));
+}
+
+bool sameignzerosign(float x, float y) {
+    return x == y || (isnan(x) && isnan(y));
+}
+
+float quiet(float x) {
+    return isnan(x) ? NAN : x;
 }
 
 static bool prereq(eZ80registers_t in, uint8_t inStack[10][3]) {
