@@ -89,23 +89,27 @@ __fpmul: ; CHECK: same(bitcast(float, pair8_24_t, { out.BC, out.A }), bitcast(fl
 	ld	b, (ix + 15)
 	mlt	bc
 	add	hl, bc
-	ld	(ix + 4), hl
-	ld	c, (ix + 17)
 	cp	a, d
 	jq	nz, .normalized
+	ld	bc, (ix + 2)
+	pop	de
 .normalize:
-	lea	hl, ix + 5
-	srl	(hl)
-repeat 5
-	dec	hl
-	rr	(hl)
-end repeat
-	jr	nc, .flushed
-	ld	(hl), a
+	srl	h
+	rr	l
+	rr	b
+	rr	c
+	rr	d
+	rr	e
+	jq	nc, .flushed
+	ld	e, a
 .flushed:
 	inc	a
 	jq	nz, .normalize
+	push	de
+	ld	(ix + 2), bc
 .normalized:
+	ld	(ix + 4), hl
+	ld	c, (ix + 17)
 	pop	ix, hl
 	inc	sp
 	ld	b, a
