@@ -83,9 +83,9 @@ __fpsqrt: ; CHECK: same(bitcast(float, pair8_24_t, { out.BC, out.A }), (float)sq
 	ld	a, e
 	add	a, 07Fh / 4 + 1
 	; Check whether to round up (never round-to-even because a root with the lowest mantissa bit set must be irrational)
-	bit	7, l
+	inc	l
 	pop	hl, de
-	ret	z
+	ret	p
 	inc	bc	; This never overflows into the exponent field
 	ret
 
