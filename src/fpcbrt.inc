@@ -40,6 +40,11 @@ __fpcbrt: ; CHECK: same(bitcast(float, pair8_24_t, { out.BC, out.A }), (float)cb
 	ld	e, a
 	push	de
 	ex	(sp), iy
+	; Optimized first iteration, we know UHL >= 1
+	; r += 1
+	inc	de
+	; x -= r << 24
+	dec	hl
 	di
 	exx
 	ld	c, a
@@ -50,17 +55,7 @@ __fpcbrt: ; CHECK: same(bitcast(float, pair8_24_t, { out.BC, out.A }), (float)cb
 	; x in AUHL[UHL']UIX, r in CUDE[UDE'], q in UIY
 .root.loop:
 	exx
-	; q <<= 1
-	add	iy, iy	; clears carry
 	lea	bc, iy
-	; r += 1
-	inc	de	; sets bit 0 so never overflows
-	; x -= r << 24
-	sbc	hl, de
-	exx
-	sbc	hl, de
-	sbc	a, c
-	exx
 	jq	c, .root.zerobit
 	ex	af, af'
 	; q += 1
@@ -143,23 +138,24 @@ __fpcbrt: ; CHECK: same(bitcast(float, pair8_24_t, { out.BC, out.A }), (float)cb
 	or	a, l
 	ld	l, a
 	ex	af, af'
-	djnz	.root.loop
-	; Determine rounding direction
 	exx
-	; x -= (r + (~q & 1)) << 24
-	srl	c	; q still in UBC from the last iteration
-	ccf
+	; q <<= 1
+	add	iy, iy	; clears carry
+	; r += 1
+	inc	de	; sets bit 0 so never overflows
+	; x -= r << 24
 	sbc	hl, de
 	exx
 	sbc	hl, de
 	sbc	a, c
+	djnz	.root.loop
+	; Apply rounding (never round-to-even because a root with the lowest mantissa bit set must be irrational)
 	; q += !carry
+	exx
 	sbc	hl, hl
 	inc	hl
-	ex	(sp), iy
-	pop	bc
 	add	hl, bc
-	pop	bc
+	pop	iy, bc
 	; Get final exponent after rounding
 	ld	a, b
 	adc	a, 07Fh - (07Fh / 3) - 10
